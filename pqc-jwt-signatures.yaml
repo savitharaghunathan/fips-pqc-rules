@@ -1,0 +1,396 @@
+- ruleID: fips-go-pqc-jwt-00100
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "PQC Inventory: JWT RSA signatures detected"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'SigningMethodRS256'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'SigningMethodRS384'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'SigningMethodRS512'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'jwt\.SigningMethodRS'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '"RS256"'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '"RS384"'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '"RS512"'
+          filePattern: "*.go"
+  message: |
+    PQC Migration Inventory: JWT with RSA signatures detected.
+
+    JWT tokens signed with RS256/RS384/RS512 use RSA-PKCS#1 v1.5 signatures,
+    which are vulnerable to quantum computers.
+
+    Algorithms detected:
+    - RS256: RSA-PKCS#1 v1.5 with SHA-256
+    - RS384: RSA-PKCS#1 v1.5 with SHA-384
+    - RS512: RSA-PKCS#1 v1.5 with SHA-512
+
+    Current FIPS Status: APPROVED
+    PQC Status: MIGRATION REQUIRED
+
+    Impact:
+    - All existing JWTs become forgeable when CRQC exists
+    - Long-lived tokens at highest risk
+    - Token verification infrastructure needs migration
+
+    Action: Catalog JWT signing infrastructure for PQC migration.
+    Consider token lifetime reduction as interim measure.
+  tag:
+    - "PQC=Migration-Required"
+    - "Crypto=JWT-RSA"
+    - "Quantum=Vulnerable"
+
+- ruleID: fips-go-pqc-jwt-00101
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "PQC Inventory: JWT RSA-PSS signatures detected"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'SigningMethodPS256'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'SigningMethodPS384'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'SigningMethodPS512'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'jwt\.SigningMethodPS'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '"PS256"'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '"PS384"'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '"PS512"'
+          filePattern: "*.go"
+  message: |
+    PQC Migration Inventory: JWT with RSA-PSS signatures detected.
+
+    JWT tokens signed with PS256/PS384/PS512 use RSA-PSS signatures,
+    which are vulnerable to quantum computers.
+
+    Algorithms detected:
+    - PS256: RSA-PSS with SHA-256
+    - PS384: RSA-PSS with SHA-384
+    - PS512: RSA-PSS with SHA-512
+
+    Note: PSS is more secure than PKCS#1 v1.5 against classical attacks,
+    but both are equally vulnerable to quantum attacks.
+
+    Current FIPS Status: APPROVED
+    PQC Status: MIGRATION REQUIRED
+
+    Action: Catalog JWT signing infrastructure for PQC migration.
+  tag:
+    - "PQC=Migration-Required"
+    - "Crypto=JWT-RSA-PSS"
+    - "Quantum=Vulnerable"
+
+- ruleID: fips-go-pqc-jwt-00102
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "PQC Inventory: JWT ECDSA signatures detected"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'SigningMethodES256'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'SigningMethodES384'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'SigningMethodES512'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'jwt\.SigningMethodES'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '"ES256"'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '"ES384"'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '"ES512"'
+          filePattern: "*.go"
+  message: |
+    PQC Migration Inventory: JWT with ECDSA signatures detected.
+
+    JWT tokens signed with ES256/ES384/ES512 use ECDSA signatures,
+    which are vulnerable to quantum computers.
+
+    Algorithms detected:
+    - ES256: ECDSA with P-256 and SHA-256
+    - ES384: ECDSA with P-384 and SHA-384
+    - ES512: ECDSA with P-521 and SHA-512
+
+    Current FIPS Status: APPROVED
+    PQC Status: MIGRATION REQUIRED
+
+    Note: ECDSA provides smaller signatures than RSA but is equally
+    vulnerable to quantum attacks via Shor's algorithm.
+
+    Action: Catalog JWT signing infrastructure for PQC migration.
+  tag:
+    - "PQC=Migration-Required"
+    - "Crypto=JWT-ECDSA"
+    - "Quantum=Vulnerable"
+
+- ruleID: fips-go-pqc-jwt-00103
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "PQC Inventory: JWT EdDSA signatures detected"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'SigningMethodEdDSA'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'jwt\.SigningMethodEdDSA'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '"EdDSA"'
+          filePattern: "*.go"
+  message: |
+    PQC Migration Inventory: JWT with EdDSA signatures detected.
+
+    JWT tokens signed with EdDSA use Ed25519 signatures,
+    which are vulnerable to quantum computers.
+
+    EdDSA (Ed25519):
+    - Fast signature generation and verification
+    - Small signatures (64 bytes)
+    - Based on Curve25519
+
+    Current FIPS Status: APPROVED (as of FIPS 186-5)
+    PQC Status: MIGRATION REQUIRED
+
+    Note: EdDSA is equally vulnerable to quantum attacks as ECDSA.
+
+    Action: Catalog JWT signing infrastructure for PQC migration.
+  tag:
+    - "PQC=Migration-Required"
+    - "Crypto=JWT-EdDSA"
+    - "Quantum=Vulnerable"
+
+- ruleID: fips-go-pqc-jwt-00200
+  labels:
+    - "konveyor.io/target=go"
+  effort: 1
+  category: potential
+  description: "PQC Inventory: JWT HMAC signatures detected - quantum resistant"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'SigningMethodHS256'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'SigningMethodHS384'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'SigningMethodHS512'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'jwt\.SigningMethodHS'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '"HS256"'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '"HS384"'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '"HS512"'
+          filePattern: "*.go"
+  message: |
+    PQC Inventory: JWT with HMAC signatures detected.
+
+    JWT tokens signed with HS256/HS384/HS512 use HMAC (symmetric),
+    which is quantum-resistant with adequate key sizes.
+
+    Algorithms detected:
+    - HS256: HMAC-SHA256 (256-bit key recommended)
+    - HS384: HMAC-SHA384 (384-bit key recommended)
+    - HS512: HMAC-SHA512 (512-bit key recommended)
+
+    Current FIPS Status: APPROVED
+    PQC Status: ACCEPTABLE
+
+    Quantum Security:
+    - Grover's algorithm provides only quadratic speedup
+    - HMAC-SHA256 with 256-bit key provides 128-bit quantum security
+    - No migration required for symmetric JWT signing
+
+    Note: HMAC requires shared secret, limiting use cases to
+    single-party or trusted-party scenarios.
+  tag:
+    - "PQC=Acceptable"
+    - "Crypto=JWT-HMAC"
+    - "Quantum=Resistant"
+
+- ruleID: fips-go-pqc-jwt-00300
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "PQC Inventory: OAuth/OIDC token handling detected"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'oauth2\.'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'oidc\.'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'id_token'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'access_token'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'refresh_token'
+          filePattern: "*.go"
+  message: |
+    PQC Migration Inventory: OAuth/OIDC token handling detected.
+
+    OAuth 2.0 and OpenID Connect rely on JWT tokens signed with
+    asymmetric algorithms (RSA, ECDSA) for identity assertions.
+
+    Components to assess:
+    - ID tokens (OIDC)
+    - Access tokens (if JWT format)
+    - Token signing keys at identity provider
+    - Token verification at resource servers
+
+    Current FIPS Status: APPROVED (depends on algorithms used)
+    PQC Status: REQUIRES ANALYSIS
+
+    Action:
+    1. Identify which signing algorithms are used
+    2. Assess token lifetimes
+    3. Plan migration with identity provider
+    4. Update token verification infrastructure
+  tag:
+    - "PQC=Requires-Analysis"
+    - "Crypto=OAuth-OIDC"
+    - "Quantum=Assessment-Needed"
+
+- ruleID: fips-go-pqc-jwt-00400
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: potential
+  description: "PQC Inventory: X.509 certificate operations detected"
+  when:
+    or:
+      - go.referenced:
+          pattern: "crypto/x509"
+      - builtin.filecontent:
+          pattern: 'x509\.CreateCertificate\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'x509\.ParseCertificate\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'x509\.Certificate\s*\{'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'tls\.LoadX509KeyPair\s*\('
+          filePattern: "*.go"
+  message: |
+    PQC Migration Inventory: X.509 certificate operations detected.
+
+    X.509 certificates typically use RSA or ECDSA signatures,
+    both of which are vulnerable to quantum computers.
+
+    Certificate components to assess:
+    - CA certificates and chains
+    - Server/client TLS certificates
+    - Code signing certificates
+    - S/MIME certificates
+
+    Current FIPS Status: APPROVED
+    PQC Status: MIGRATION REQUIRED
+
+    Challenges:
+    - Long certificate lifetimes (years)
+    - Complex PKI hierarchies
+    - Interoperability requirements
+    - CA infrastructure updates needed
+
+    Action: Catalog certificate usage for PQC migration planning.
+    Consider hybrid certificates during transition period.
+  tag:
+    - "PQC=Migration-Required"
+    - "Crypto=X509-Certificates"
+    - "Quantum=Vulnerable"
+
+- ruleID: fips-go-pqc-jwt-00500
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "PQC Inventory: SSH key operations detected"
+  when:
+    or:
+      - go.referenced:
+          pattern: "golang.org/x/crypto/ssh"
+      - builtin.filecontent:
+          pattern: 'ssh\.ParsePrivateKey\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'ssh\.ParseAuthorizedKey\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'ssh\.NewPublicKey\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'ssh\.MarshalAuthorizedKey\s*\('
+          filePattern: "*.go"
+  message: |
+    PQC Migration Inventory: SSH key operations detected.
+
+    SSH typically uses RSA, ECDSA, or Ed25519 keys,
+    all of which are vulnerable to quantum computers.
+
+    SSH key types to assess:
+    - RSA keys (ssh-rsa)
+    - ECDSA keys (ecdsa-sha2-nistp256/384/521)
+    - Ed25519 keys (ssh-ed25519)
+
+    Current FIPS Status: APPROVED
+    PQC Status: MIGRATION REQUIRED
+
+    OpenSSH 9.0+ supports hybrid key exchange with
+    NTRU Prime + X25519 for quantum resistance.
+
+    Action: Catalog SSH key usage for PQC migration planning.
+    Plan upgrade to quantum-resistant key exchange.
+  tag:
+    - "PQC=Migration-Required"
+    - "Crypto=SSH-Keys"
+    - "Quantum=Vulnerable"

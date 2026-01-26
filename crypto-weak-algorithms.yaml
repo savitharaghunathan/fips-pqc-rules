@@ -1,0 +1,271 @@
+- ruleID: fips-go-weak-00100
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Unacceptable: DES cipher usage detected - not FIPS 140 compliant"
+  when:
+    or:
+      - go.referenced:
+          pattern: "crypto/des"
+      - builtin.filecontent:
+          pattern: 'des\.NewCipher\s*\('
+          filePattern: "*.go"
+  message: |
+    DES (Data Encryption Standard) is cryptographically broken and banned by NIST.
+    DES has a 56-bit key which can be brute-forced in hours.
+
+    This includes:
+    - des.NewCipher() - Single DES
+    - des.NewTripleDESCipher() - 3DES (also deprecated)
+
+    Action: Replace with AES-GCM from crypto/aes and crypto/cipher.
+    3DES is also deprecated and should not be used for new development.
+  links:
+    - title: "NIST SP 800-131A Rev 2"
+      url: "https://csrc.nist.gov/publications/detail/sp/800-131a/rev-2/final"
+  tag:
+    - "FIPS-140=Unacceptable"
+    - "Crypto=Weak-Cipher"
+    - "CWE=CWE-327"
+
+- ruleID: fips-go-weak-00101
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Unacceptable: 3DES cipher usage detected - deprecated for FIPS 140"
+  when:
+    builtin.filecontent:
+      pattern: 'des\.NewTripleDESCipher\s*\('
+      filePattern: "*.go"
+  message: |
+    Triple DES (3DES) is deprecated by NIST as of 2023.
+    It has a 64-bit block size vulnerable to Sweet32 birthday attacks.
+
+    NIST SP 800-131A Rev 2 disallows 3DES for encryption after 2023.
+
+    Action: Replace with AES-GCM from crypto/aes and crypto/cipher.
+    AES provides better security and performance.
+  links:
+    - title: "NIST SP 800-131A Rev 2"
+      url: "https://csrc.nist.gov/publications/detail/sp/800-131a/rev-2/final"
+  tag:
+    - "FIPS-140=Unacceptable"
+    - "Crypto=Deprecated-Cipher"
+    - "CWE=CWE-327"
+
+- ruleID: fips-go-weak-00102
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Unacceptable: RC4 cipher usage detected - not FIPS 140 compliant"
+  when:
+    or:
+      - go.referenced:
+          pattern: "crypto/rc4"
+      - builtin.filecontent:
+          pattern: 'rc4\.NewCipher\s*\('
+          filePattern: "*.go"
+  message: |
+    RC4 is cryptographically broken and banned by NIST.
+    Multiple practical attacks exist (NOMORE, Bar Mitzvah, etc.).
+
+    RC4 was prohibited in TLS by RFC 7465 in 2015.
+
+    Action: Replace with AES-GCM from crypto/aes and crypto/cipher.
+  links:
+    - title: "RFC 7465 - Prohibiting RC4 Cipher Suites"
+      url: "https://tools.ietf.org/html/rfc7465"
+  tag:
+    - "FIPS-140=Unacceptable"
+    - "Crypto=Broken-Cipher"
+    - "CWE=CWE-327"
+
+- ruleID: fips-go-weak-00200
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: mandatory
+  description: "Unacceptable: MD5 hash for security purposes - not FIPS 140 compliant"
+  when:
+    or:
+      - go.referenced:
+          pattern: "crypto/md5"
+      - builtin.filecontent:
+          pattern: 'md5\.New\s*\(\s*\)'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'md5\.Sum\s*\('
+          filePattern: "*.go"
+  message: |
+    MD5 is cryptographically broken for security purposes.
+    Collision attacks are practical and can be performed in seconds.
+
+    MD5 MUST NOT be used for:
+    - Digital signatures
+    - Certificate validation
+    - Password hashing
+    - Message authentication
+
+    MD5 MAY be acceptable for:
+    - Non-security checksums (file integrity where attacker cannot modify)
+    - Legacy protocol compatibility (requires analysis)
+
+    Action: Replace with SHA-256 from crypto/sha256.
+  links:
+    - title: "Go crypto/sha256 Documentation"
+      url: "https://pkg.go.dev/crypto/sha256"
+  tag:
+    - "FIPS-140=Unacceptable"
+    - "Crypto=Broken-Hash"
+    - "CWE=CWE-328"
+
+- ruleID: fips-go-weak-00201
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "Requires Analysis: SHA-1 hash detected - deprecated for signatures"
+  when:
+    or:
+      - go.referenced:
+          pattern: "crypto/sha1"
+      - builtin.filecontent:
+          pattern: 'sha1\.New\s*\(\s*\)'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'sha1\.Sum\s*\('
+          filePattern: "*.go"
+  message: |
+    SHA-1 is deprecated for digital signatures and certificates.
+    Collision attacks are practical (SHAttered attack, 2017).
+
+    SHA-1 is PROHIBITED for:
+    - Digital signatures (NIST SP 800-131A)
+    - Certificate generation
+    - New protocol designs
+
+    SHA-1 MAY be acceptable for:
+    - HMAC-SHA1 (still considered secure)
+    - Legacy protocol compatibility (requires analysis)
+    - Non-security checksums
+
+    Action: Evaluate usage context. For signatures, replace with SHA-256.
+  links:
+    - title: "NIST SP 800-131A Rev 2"
+      url: "https://csrc.nist.gov/publications/detail/sp/800-131a/rev-2/final"
+  tag:
+    - "FIPS-140=Requires-Analysis"
+    - "Crypto=Deprecated-Hash"
+    - "CWE=CWE-328"
+
+- ruleID: fips-go-weak-00300
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Unacceptable: AES-ECB mode detected - insecure cipher mode"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'cipher\.NewECBEncrypter\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'cipher\.NewECBDecrypter\s*\('
+          filePattern: "*.go"
+  message: |
+    ECB (Electronic Codebook) mode is insecure and MUST NOT be used.
+
+    ECB mode problems:
+    - Identical plaintext blocks produce identical ciphertext blocks
+    - Reveals patterns in encrypted data (the "ECB penguin" problem)
+    - No authentication - vulnerable to tampering
+    - No semantic security
+
+    Action: Use AES-GCM which provides both encryption and authentication.
+
+    Example:
+      block, _ := aes.NewCipher(key)
+      gcm, _ := cipher.NewGCM(block)
+      ciphertext := gcm.Seal(nonce, nonce, plaintext, nil)
+  links:
+    - title: "Go crypto/cipher GCM Documentation"
+      url: "https://pkg.go.dev/crypto/cipher#NewGCM"
+  tag:
+    - "FIPS-140=Unacceptable"
+    - "Crypto=Insecure-Mode"
+    - "CWE=CWE-327"
+
+- ruleID: fips-go-weak-00301
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "Requires Analysis: CBC mode without authentication detected"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'cipher\.NewCBCEncrypter\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'cipher\.NewCBCDecrypter\s*\('
+          filePattern: "*.go"
+  message: |
+    CBC (Cipher Block Chaining) mode does not provide authentication.
+    This makes it vulnerable to padding oracle attacks (e.g., POODLE, Lucky13).
+
+    CBC mode issues:
+    - No integrity protection - ciphertext can be modified
+    - Padding oracle attacks if error messages leak information
+    - Requires separate MAC for authentication (Encrypt-then-MAC)
+
+    Action: Prefer AES-GCM which provides authenticated encryption.
+    If CBC must be used, implement Encrypt-then-MAC with HMAC-SHA256.
+  links:
+    - title: "Go crypto/cipher GCM Documentation"
+      url: "https://pkg.go.dev/crypto/cipher#NewGCM"
+  tag:
+    - "FIPS-140=Requires-Analysis"
+    - "Crypto=Unauthenticated-Mode"
+    - "CWE=CWE-327"
+
+- ruleID: fips-go-weak-00302
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "Requires Analysis: CFB/OFB/CTR mode without authentication"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'cipher\.NewCFBEncrypter\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'cipher\.NewCFBDecrypter\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'cipher\.NewOFB\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'cipher\.NewCTR\s*\('
+          filePattern: "*.go"
+  message: |
+    Stream cipher modes (CFB, OFB, CTR) do not provide authentication.
+    Ciphertext can be modified without detection.
+
+    These modes:
+    - Provide confidentiality only
+    - Allow bit-flipping attacks on ciphertext
+    - Require separate MAC for integrity
+
+    Action: Prefer AES-GCM which provides authenticated encryption.
+    If these modes must be used, implement Encrypt-then-MAC with HMAC-SHA256.
+  links:
+    - title: "Go crypto/cipher GCM Documentation"
+      url: "https://pkg.go.dev/crypto/cipher#NewGCM"
+  tag:
+    - "FIPS-140=Requires-Analysis"
+    - "Crypto=Unauthenticated-Mode"
+    - "CWE=CWE-327"

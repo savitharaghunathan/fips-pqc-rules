@@ -1,0 +1,142 @@
+- ruleID: fips-go-pqc-exp-00500
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: potential
+  description: "Migration Required: Go+BoringCrypto is being deprecated"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'GOEXPERIMENT=boringcrypto'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'GOEXPERIMENT=boringcrypto'
+          filePattern: "Dockerfile*"
+      - builtin.filecontent:
+          pattern: 'GOEXPERIMENT=boringcrypto'
+          filePattern: "*.yaml"
+      - builtin.filecontent:
+          pattern: 'GOEXPERIMENT=boringcrypto'
+          filePattern: "*.yml"
+      - builtin.filecontent:
+          pattern: 'GOEXPERIMENT=boringcrypto'
+          filePattern: "Makefile*"
+      - builtin.filecontent:
+          pattern: 'GOEXPERIMENT=boringcrypto'
+          filePattern: "*.sh"
+  message: |
+    Deprecated FIPS Mode. GOEXPERIMENT=boringcrypto is being deprecated.
+
+    Go+BoringCrypto:
+    - Never officially supported by Go team
+    - Uses cgo to call BoringSSL (C library)
+    - FIPS 140-2 certified (expires September 2026)
+    - Incompatible with native FIPS 140-3 mode
+
+    Migration Path (Go 1.24+):
+    - Use GODEBUG=fips140=on for native FIPS mode
+    - Pure Go implementation, no cgo dependency
+    - FIPS 140-3 compliant (CMVP validation pending)
+
+    Action:
+    1. Plan migration to Go 1.24+ native FIPS mode
+    2. Update build configurations to use GODEBUG=fips140=on
+    3. Remove GOEXPERIMENT=boringcrypto from builds
+    4. Test with native FIPS module before cutover
+  links:
+    - title: "Go FIPS 140-3 Compliance"
+      url: "https://go.dev/doc/security/fips140"
+    - title: "The FIPS 140-3 Go Cryptographic Module"
+      url: "https://go.dev/blog/fips140"
+  tag:
+    - "FIPS-140=Deprecated"
+    - "BoringCrypto=Migration"
+
+- ruleID: fips-go-pqc-exp-00501
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "Migration Required: golang-fips/go fork detected"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'golang-fips/go'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'golang-fips/go'
+          filePattern: "Dockerfile*"
+      - builtin.filecontent:
+          pattern: 'golang-fips/go'
+          filePattern: "*.yaml"
+      - builtin.filecontent:
+          pattern: 'golang-fips/go'
+          filePattern: "go.mod"
+  message: |
+    OpenSSL-based FIPS Fork. golang-fips/go fork detected.
+
+    This fork:
+    - Links Go against OpenSSL for FIPS operations
+    - Used primarily on Red Hat / RHEL systems
+    - Produces dynamically linked binaries
+    - Requires libcrypto.so at runtime
+
+    Migration Path:
+    The golang-fips maintainers plan to sunset this fork in favor of
+    upstream Go's native FIPS 140-3 module once certified.
+
+    Action:
+    1. Monitor upstream Go FIPS certification status
+    2. Plan migration to native Go FIPS mode when available
+    3. Test applications with native FIPS module
+    4. Update container base images as appropriate
+  links:
+    - title: "golang-fips/go Repository"
+      url: "https://github.com/golang-fips/go"
+  tag:
+    - "FIPS-140=OpenSSL-Fork"
+    - "Migration=Planned"
+
+- ruleID: fips-go-pqc-exp-00502
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "Migration Required: Legacy GOFIPS setting detected"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'GOFIPS=1'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'GOFIPS=1'
+          filePattern: "Dockerfile*"
+      - builtin.filecontent:
+          pattern: 'GOFIPS=1'
+          filePattern: "*.yaml"
+      - builtin.filecontent:
+          pattern: 'GOFIPS=1'
+          filePattern: "*.yml"
+      - builtin.filecontent:
+          pattern: 'GOFIPS=1'
+          filePattern: "*.sh"
+  message: |
+    Legacy FIPS Setting. GOFIPS=1 is a legacy setting being superseded.
+
+    GOFIPS=1:
+    - Used with golang-fips/go fork
+    - Enables OpenSSL-based FIPS mode
+    - Being replaced by GODEBUG=fips140=on
+
+    Go 1.24+ Native FIPS:
+    - GODEBUG=fips140=on (enable FIPS mode)
+    - GODEBUG=fips140=only (strict mode, panics on non-FIPS)
+    - Pure Go implementation, no OpenSSL dependency
+
+    Action:
+    1. For Go 1.24+: Migrate to GODEBUG=fips140=on
+    2. For older Go with golang-fips: Continue using GOFIPS=1
+    3. Plan upgrade path to native FIPS mode
+  tag:
+    - "FIPS-140=Legacy-Setting"
+    - "GOFIPS=Migration"

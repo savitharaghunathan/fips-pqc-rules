@@ -1,0 +1,677 @@
+- ruleID: fips-go-crypto-00100
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: mandatory
+  description: "Insecure MD4 hash algorithm detected - not FIPS 140 compliant"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/md4"
+  message: |
+    MD4 hash algorithm is insecure and banned by NIST. It is vulnerable to collision attacks
+    and must not be used in FIPS 140 compliant systems.
+
+    Replace with: crypto/sha256 from the Go standard library.
+  links:
+    - title: "Go crypto/sha256 Documentation"
+      url: "https://pkg.go.dev/crypto/sha256"
+  tag:
+    - "FIPS-140=Unacceptable"
+
+- ruleID: fips-go-crypto-00101
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: mandatory
+  description: "Non-standard RIPEMD-160 hash algorithm detected - not FIPS 140 compliant"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/ripemd160"
+  message: |
+    RIPEMD-160 is not an approved hash function for FIPS 140 compliance.
+    While not cryptographically broken, it is not NIST-approved.
+
+    Replace with: crypto/sha256 or crypto/sha512 from the Go standard library.
+  links:
+    - title: "Go crypto/sha256 Documentation"
+      url: "https://pkg.go.dev/crypto/sha256"
+  tag:
+    - "FIPS-140=Unacceptable"
+
+- ruleID: fips-go-crypto-00200
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Legacy Blowfish cipher detected - not FIPS 140 compliant"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/blowfish"
+  message: |
+    Blowfish is a legacy cipher with a 64-bit block size vulnerable to Sweet32 attacks.
+    It is not NIST-approved for FIPS 140 compliance.
+
+    Replace with: crypto/aes with crypto/cipher GCM mode from the Go standard library.
+  links:
+    - title: "Go crypto/aes Documentation"
+      url: "https://pkg.go.dev/crypto/aes"
+    - title: "Go crypto/cipher GCM Documentation"
+      url: "https://pkg.go.dev/crypto/cipher#NewGCM"
+  tag:
+    - "FIPS-140=Unacceptable"
+
+- ruleID: fips-go-crypto-00201
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Non-standard Twofish cipher detected - not FIPS 140 compliant"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/twofish"
+  message: |
+    Twofish is cryptographically secure but is not FIPS 140 validated.
+    Only AES is approved as a block cipher for FIPS compliance.
+
+    Replace with: crypto/aes with crypto/cipher GCM mode from the Go standard library.
+  links:
+    - title: "Go crypto/aes Documentation"
+      url: "https://pkg.go.dev/crypto/aes"
+  tag:
+    - "FIPS-140=Unacceptable"
+
+- ruleID: fips-go-crypto-00202
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Non-standard CAST5 cipher detected - not FIPS 140 compliant"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/cast5"
+  message: |
+    CAST5 is a legacy cipher not approved for government use under FIPS 140.
+
+    Replace with: crypto/aes with crypto/cipher GCM mode from the Go standard library.
+  links:
+    - title: "Go crypto/aes Documentation"
+      url: "https://pkg.go.dev/crypto/aes"
+  tag:
+    - "FIPS-140=Unacceptable"
+
+- ruleID: fips-go-crypto-00203
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Insecure TEA cipher detected - not FIPS 140 compliant"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/tea"
+  message: |
+    TEA (Tiny Encryption Algorithm) is susceptible to related-key attacks
+    and is not approved for FIPS 140 compliance.
+
+    Replace with: crypto/aes with crypto/cipher GCM mode from the Go standard library.
+  links:
+    - title: "Go crypto/aes Documentation"
+      url: "https://pkg.go.dev/crypto/aes"
+  tag:
+    - "FIPS-140=Unacceptable"
+
+- ruleID: fips-go-crypto-00204
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Insecure XTEA cipher detected - not FIPS 140 compliant"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/xtea"
+  message: |
+    XTEA (Extended TEA) is susceptible to related-key attacks
+    and is not approved for FIPS 140 compliance.
+
+    Replace with: crypto/aes with crypto/cipher GCM mode from the Go standard library.
+  links:
+    - title: "Go crypto/aes Documentation"
+      url: "https://pkg.go.dev/crypto/aes"
+  tag:
+    - "FIPS-140=Unacceptable"
+
+- ruleID: fips-go-crypto-00300
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Non-standard ChaCha20 stream cipher detected - not FIPS 140 compliant"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/chacha20"
+  message: |
+    ChaCha20 is a modern secure stream cipher but is not FIPS 140 validated.
+    FIPS mode requires AES for symmetric encryption.
+
+    Replace with: crypto/aes with crypto/cipher GCM mode from the Go standard library.
+  links:
+    - title: "Go crypto/aes Documentation"
+      url: "https://pkg.go.dev/crypto/aes"
+  tag:
+    - "FIPS-140=Unacceptable"
+
+- ruleID: fips-go-crypto-00301
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Non-standard Salsa20 stream cipher detected - not FIPS 140 compliant"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/salsa20"
+  message: |
+    Salsa20 stream cipher is not approved for FIPS 140 compliance.
+
+    Replace with: crypto/aes with crypto/cipher GCM mode from the Go standard library.
+  links:
+    - title: "Go crypto/aes Documentation"
+      url: "https://pkg.go.dev/crypto/aes"
+  tag:
+    - "FIPS-140=Unacceptable"
+
+- ruleID: fips-go-crypto-00400
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Non-standard ChaCha20-Poly1305 AEAD detected - not FIPS 140 compliant"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/chacha20poly1305"
+  message: |
+    ChaCha20-Poly1305 is a modern AEAD construction but is not FIPS 140 validated.
+
+    Replace with: crypto/cipher NewGCM with AES from the Go standard library.
+    AES-GCM provides equivalent AEAD functionality with FIPS compliance.
+  links:
+    - title: "Go crypto/cipher GCM Documentation"
+      url: "https://pkg.go.dev/crypto/cipher#NewGCM"
+  tag:
+    - "FIPS-140=Unacceptable"
+
+- ruleID: fips-go-crypto-00401
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Non-standard Poly1305 authenticator detected - not FIPS 140 compliant"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/poly1305"
+  message: |
+    Poly1305 message authenticator is not approved for FIPS 140 compliance.
+
+    Replace with: crypto/cipher AES-GCM which handles authentication internally.
+  links:
+    - title: "Go crypto/cipher GCM Documentation"
+      url: "https://pkg.go.dev/crypto/cipher#NewGCM"
+  tag:
+    - "FIPS-140=Unacceptable"
+
+- ruleID: fips-go-crypto-00500
+  labels:
+    - "konveyor.io/target=go"
+  effort: 4
+  category: mandatory
+  description: "Non-standard Curve25519 elliptic curve detected - not FIPS 140 compliant"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/curve25519"
+  message: |
+    Curve25519 is not a NIST-approved curve for FIPS 140 compliance.
+    FIPS requires NIST curves (P-256, P-384, P-521).
+
+    Replace with: crypto/ecdh (Go 1.20+) or crypto/elliptic with P-256 curve.
+  links:
+    - title: "Go crypto/ecdh Documentation"
+      url: "https://pkg.go.dev/crypto/ecdh"
+    - title: "Go crypto/elliptic Documentation"
+      url: "https://pkg.go.dev/crypto/elliptic"
+  tag:
+    - "FIPS-140=Unacceptable"
+
+- ruleID: fips-go-crypto-00501
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "x/crypto/ed25519 package detected - evaluate for FIPS 140 compliance"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/ed25519"
+  message: |
+    The golang.org/x/crypto/ed25519 package is deprecated but may be acceptable
+    in certain FIPS contexts. Evaluate your use case.
+
+    The x/crypto version does not integrate with OpenSSL FIPS module.
+    For better FIPS integration, prefer: crypto/ed25519 from the Go standard library.
+  links:
+    - title: "Go crypto/ed25519 Documentation"
+      url: "https://pkg.go.dev/crypto/ed25519"
+  tag:
+    - "FIPS-140=Acceptable-Evaluate"
+
+- ruleID: fips-go-crypto-00502
+  labels:
+    - "konveyor.io/target=go"
+  effort: 4
+  category: mandatory
+  description: "Non-standard bn256 pairing curve detected - not FIPS 140 compliant"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/bn256"
+  message: |
+    bn256 is a pairing-friendly curve not approved for FIPS 140 compliance.
+
+    Replace with: crypto/elliptic with P-256 curve for standard ECC operations.
+    Note: Pairing-based cryptography has no FIPS-approved alternative.
+  links:
+    - title: "Go crypto/elliptic Documentation"
+      url: "https://pkg.go.dev/crypto/elliptic"
+  tag:
+    - "FIPS-140=Unacceptable"
+
+- ruleID: fips-go-crypto-00600
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: mandatory
+  description: "Non-standard Blake2b hash function detected - not FIPS 140 compliant"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/blake2b"
+  message: |
+    Blake2b is a high-performance hash function but is not FIPS 140 approved.
+
+    Replace with: crypto/sha256 or crypto/sha512 from the Go standard library.
+  links:
+    - title: "Go crypto/sha512 Documentation"
+      url: "https://pkg.go.dev/crypto/sha512"
+  tag:
+    - "FIPS-140=Unacceptable"
+
+- ruleID: fips-go-crypto-00601
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: mandatory
+  description: "Non-standard Blake2s hash function detected - not FIPS 140 compliant"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/blake2s"
+  message: |
+    Blake2s is a high-performance hash function but is not FIPS 140 approved.
+
+    Replace with: crypto/sha256 from the Go standard library.
+  links:
+    - title: "Go crypto/sha256 Documentation"
+      url: "https://pkg.go.dev/crypto/sha256"
+  tag:
+    - "FIPS-140=Unacceptable"
+
+- ruleID: fips-go-crypto-00700
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Non-standard Argon2 password hashing detected - not FIPS 140 compliant"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/argon2"
+  message: |
+    Argon2 is a modern password hashing function but is not FIPS 140 approved.
+    FIPS requires PBKDF2 for password-based key derivation.
+
+    Replace with: golang.org/x/crypto/pbkdf2 with SHA-256.
+  links:
+    - title: "Go x/crypto/pbkdf2 Documentation"
+      url: "https://pkg.go.dev/golang.org/x/crypto/pbkdf2"
+  tag:
+    - "FIPS-140=Unacceptable"
+
+- ruleID: fips-go-crypto-00701
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Non-standard bcrypt password hashing detected - not FIPS 140 compliant"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/bcrypt"
+  message: |
+    bcrypt is a widely-used password hashing function but is not FIPS 140 approved.
+    FIPS requires PBKDF2 for password-based key derivation.
+
+    Replace with: golang.org/x/crypto/pbkdf2 with SHA-256.
+  links:
+    - title: "Go x/crypto/pbkdf2 Documentation"
+      url: "https://pkg.go.dev/golang.org/x/crypto/pbkdf2"
+  tag:
+    - "FIPS-140=Unacceptable"
+
+- ruleID: fips-go-crypto-00702
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: potential
+  description: "scrypt password hashing detected - evaluate for FIPS 140 compliance"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/scrypt"
+  message: |
+    scrypt is a memory-hard password hashing function. Password hashing is considered
+    "cleartext equivalent" and may be acceptable in FIPS environments depending on context.
+
+    Evaluate your use case. If strict FIPS compliance is required, consider:
+    golang.org/x/crypto/pbkdf2 with SHA-256.
+  links:
+    - title: "Go x/crypto/pbkdf2 Documentation"
+      url: "https://pkg.go.dev/golang.org/x/crypto/pbkdf2"
+  tag:
+    - "FIPS-140=Acceptable-Evaluate"
+
+- ruleID: fips-go-crypto-00800
+  labels:
+    - "konveyor.io/target=go"
+  effort: 5
+  category: mandatory
+  description: "Insecure OTR protocol detected - not FIPS 140 compliant"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/otr"
+  message: |
+    OTR (Off-the-Record) messaging protocol relies on weak keys (1536-bit) and SHA-1.
+    It is insecure and not FIPS 140 compliant.
+
+    Do not use OTR. Rewrite secure messaging using crypto/tls with approved cipher suites.
+  links:
+    - title: "Go crypto/tls Documentation"
+      url: "https://pkg.go.dev/crypto/tls"
+  tag:
+    - "FIPS-140=Unacceptable"
+
+- ruleID: fips-go-crypto-00801
+  labels:
+    - "konveyor.io/target=go"
+  effort: 4
+  category: mandatory
+  description: "Non-standard NaCl box detected - not FIPS 140 compliant"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/nacl/box"
+  message: |
+    NaCl box relies on Curve25519 for key exchange and XSalsa20-Poly1305 for authenticated
+    encryption, none of which are FIPS approved.
+
+    Replace with: crypto/aes (GCM) for encryption and crypto/ecdh (P-256) for key exchange.
+  links:
+    - title: "Go crypto/ecdh Documentation"
+      url: "https://pkg.go.dev/crypto/ecdh"
+    - title: "Go crypto/cipher GCM Documentation"
+      url: "https://pkg.go.dev/crypto/cipher#NewGCM"
+  tag:
+    - "FIPS-140=Unacceptable"
+
+- ruleID: fips-go-crypto-00802
+  labels:
+    - "konveyor.io/target=go"
+  effort: 4
+  category: mandatory
+  description: "Non-standard NaCl secretbox detected - not FIPS 140 compliant"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/nacl/secretbox"
+  message: |
+    NaCl secretbox relies on XSalsa20-Poly1305 for authenticated encryption,
+    which is not FIPS approved.
+
+    Replace with: crypto/aes with crypto/cipher GCM mode for authenticated encryption.
+  links:
+    - title: "Go crypto/cipher GCM Documentation"
+      url: "https://pkg.go.dev/crypto/cipher#NewGCM"
+  tag:
+    - "FIPS-140=Unacceptable"
+
+- ruleID: fips-go-crypto-00803
+  labels:
+    - "konveyor.io/target=go"
+  effort: 4
+  category: mandatory
+  description: "Non-standard NaCl sign detected - not FIPS 140 compliant"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/nacl/sign"
+  message: |
+    NaCl sign uses Ed25519 from x/crypto which does not integrate with FIPS modules.
+
+    Replace with: crypto/ed25519 from the Go standard library or crypto/ecdsa with P-256.
+  links:
+    - title: "Go crypto/ed25519 Documentation"
+      url: "https://pkg.go.dev/crypto/ed25519"
+    - title: "Go crypto/ecdsa Documentation"
+      url: "https://pkg.go.dev/crypto/ecdsa"
+  tag:
+    - "FIPS-140=Unacceptable"
+
+- ruleID: fips-go-crypto-00804
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Non-standard NaCl auth detected - not FIPS 140 compliant"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/nacl/auth"
+  message: |
+    NaCl auth uses Poly1305 for message authentication which is not FIPS approved.
+
+    Replace with: crypto/hmac with SHA-256 for message authentication,
+    or use crypto/cipher AES-GCM which provides integrated authentication.
+  links:
+    - title: "Go crypto/hmac Documentation"
+      url: "https://pkg.go.dev/crypto/hmac"
+    - title: "Go crypto/cipher GCM Documentation"
+      url: "https://pkg.go.dev/crypto/cipher#NewGCM"
+  tag:
+    - "FIPS-140=Unacceptable"
+
+- ruleID: fips-go-crypto-00805
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: potential
+  description: "XTS mode from x/crypto bypasses FIPS module"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/xts"
+  message: |
+    XTS-AES is FIPS approved (SP 800-38E), but the golang.org/x/crypto/xts implementation
+    does not integrate with FIPS-validated cryptographic modules.
+
+    For FIPS compliance, use a FIPS-validated XTS implementation or consider
+    AES-GCM from crypto/cipher as an alternative for authenticated encryption.
+  links:
+    - title: "NIST SP 800-38E (XTS-AES)"
+      url: "https://csrc.nist.gov/publications/detail/sp/800-38e/final"
+    - title: "Go crypto/cipher Documentation"
+      url: "https://pkg.go.dev/crypto/cipher"
+  tag:
+    - "FIPS-140=Acceptable-Evaluate"
+
+- ruleID: fips-go-crypto-00806
+  labels:
+    - "konveyor.io/target=go"
+  effort: 5
+  category: potential
+  description: "OpenPGP package detected - requires FIPS algorithm analysis"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/openpgp"
+  message: |
+    The golang.org/x/crypto/openpgp package is a high-level protocol that can use
+    various cryptographic algorithms. Analysis is required to determine which
+    algorithms are being negotiated or used.
+
+    Review the implementation to ensure only FIPS-approved algorithms are used:
+    - Verify symmetric ciphers (prefer AES, avoid CAST5, Blowfish)
+    - Verify hash functions (prefer SHA-256/SHA-512, avoid MD5/SHA-1)
+    - Verify asymmetric algorithms (prefer RSA/ECDSA, avoid ElGamal)
+
+    Note: This package is deprecated. Consider alternatives for new development.
+  links:
+    - title: "Go x/crypto/openpgp Documentation"
+      url: "https://pkg.go.dev/golang.org/x/crypto/openpgp"
+  tag:
+    - "FIPS-140=Requires-Analysis"
+
+- ruleID: fips-go-crypto-00807
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: potential
+  description: "SSH package may negotiate non-FIPS cipher suites"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/ssh"
+  message: |
+    The golang.org/x/crypto/ssh package can negotiate non-FIPS compliant cipher suites
+    including ChaCha20-Poly1305 and Curve25519 by default.
+
+    For FIPS compliance, you must explicitly configure ssh.Config to use only FIPS-approved
+    algorithms. The default configuration includes non-FIPS ciphers.
+
+    Set these fields in ssh.ClientConfig or ssh.ServerConfig:
+    - Config.Ciphers: []string{"aes128-ctr", "aes256-ctr", "aes128-gcm@openssh.com", "aes256-gcm@openssh.com"}
+    - Config.KeyExchanges: []string{"ecdh-sha2-nistp256", "ecdh-sha2-nistp384"}
+    - Config.MACs: []string{"hmac-sha2-256", "hmac-sha2-512"}
+  links:
+    - title: "Go x/crypto/ssh Documentation"
+      url: "https://pkg.go.dev/golang.org/x/crypto/ssh"
+    - title: "NIST SP 800-52 (TLS Guidelines)"
+      url: "https://csrc.nist.gov/publications/detail/sp/800-52/rev-2/final"
+  tag:
+    - "FIPS-140=Requires-Analysis"
+
+- ruleID: fips-go-crypto-00900
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "ACME package detected - requires FIPS algorithm analysis"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/acme"
+  message: |
+    The golang.org/x/crypto/acme package implements the ACME protocol for automatic
+    certificate management. This is a high-level protocol that uses underlying
+    cryptographic operations.
+
+    Analysis is required to verify FIPS compliance:
+    - Review TLS configuration for FIPS-approved cipher suites
+    - Verify key types used (prefer RSA-2048+ or ECDSA P-256/P-384)
+    - Ensure certificate signing uses approved algorithms
+  links:
+    - title: "Go x/crypto/acme Documentation"
+      url: "https://pkg.go.dev/golang.org/x/crypto/acme"
+  tag:
+    - "FIPS-140=Requires-Analysis"
+
+- ruleID: fips-go-crypto-00901
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "OCSP package detected - requires FIPS algorithm analysis"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/ocsp"
+  message: |
+    The golang.org/x/crypto/ocsp package handles OCSP (Online Certificate Status Protocol)
+    responses. This is a high-level protocol that uses underlying cryptographic operations.
+
+    Analysis is required to verify FIPS compliance:
+    - Review signature algorithms used in OCSP responses
+    - Verify hash functions (prefer SHA-256/SHA-512)
+    - Ensure certificate validation uses approved algorithms
+  links:
+    - title: "Go x/crypto/ocsp Documentation"
+      url: "https://pkg.go.dev/golang.org/x/crypto/ocsp"
+  tag:
+    - "FIPS-140=Requires-Analysis"
+
+- ruleID: fips-go-crypto-00902
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: potential
+  description: "PKCS12 package detected - requires FIPS algorithm analysis"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/pkcs12"
+  message: |
+    The golang.org/x/crypto/pkcs12 package handles PKCS#12 certificate bundles.
+    PKCS#12 can use various encryption and MAC algorithms internally.
+
+    Analysis is required to verify FIPS compliance:
+    - Review encryption algorithms used (prefer AES, avoid 3DES/RC2)
+    - Verify MAC algorithms (prefer SHA-256 based)
+    - Check key derivation functions used
+    - Legacy PKCS#12 files may use non-FIPS algorithms
+  links:
+    - title: "Go x/crypto/pkcs12 Documentation"
+      url: "https://pkg.go.dev/golang.org/x/crypto/pkcs12"
+  tag:
+    - "FIPS-140=Requires-Analysis"
+
+- ruleID: fips-go-crypto-00903
+  labels:
+    - "konveyor.io/target=go"
+  effort: 1
+  category: potential
+  description: "x509roots package detected - requires FIPS algorithm analysis"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/x509roots"
+  message: |
+    The golang.org/x/crypto/x509roots package provides X.509 root certificate handling.
+    This is a high-level package that works with certificate trust stores.
+
+    Analysis is required to verify FIPS compliance:
+    - Verify root certificates use approved signature algorithms
+    - Ensure certificate chain validation uses FIPS-approved algorithms
+  links:
+    - title: "Go x/crypto/x509roots Documentation"
+      url: "https://pkg.go.dev/golang.org/x/crypto/x509roots"
+  tag:
+    - "FIPS-140=Requires-Analysis"
+
+- ruleID: fips-go-crypto-00904
+  labels:
+    - "konveyor.io/target=go"
+  effort: 1
+  category: potential
+  description: "cryptobyte package detected - requires FIPS algorithm analysis"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/cryptobyte"
+  message: |
+    The golang.org/x/crypto/cryptobyte package provides low-level byte manipulation
+    for cryptographic message parsing and construction.
+
+    This package itself does not implement cryptographic algorithms, but is used
+    by other packages that may. Analysis may be required to verify how it is used
+    in your application and whether the consuming code is FIPS compliant.
+  links:
+    - title: "Go x/crypto/cryptobyte Documentation"
+      url: "https://pkg.go.dev/golang.org/x/crypto/cryptobyte"
+  tag:
+    - "FIPS-140=Requires-Analysis"

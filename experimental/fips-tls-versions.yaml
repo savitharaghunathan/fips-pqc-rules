@@ -1,0 +1,143 @@
+- ruleID: fips-go-exp-tls-00100
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Unacceptable: TLS 1.0 usage detected - not FIPS 140-3 compliant"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'tls\.VersionTLS10'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'VersionTLS10'
+          filePattern: "*.go"
+  message: |
+    TLS 1.0 Deprecated. TLS 1.0 is not allowed under FIPS 140-3 / SP 800-52 Rev 2.
+
+    TLS 1.0 issues:
+    - Vulnerable to BEAST, POODLE attacks
+    - Uses weak cipher suites
+    - Deprecated by NIST since 2021
+    - Support ended in major browsers
+
+    FIPS Requirements:
+    - TLS 1.2 minimum (with approved cipher suites)
+    - TLS 1.3 required since January 2024
+    - TLS 1.3 preferred for all new connections
+
+    Action: Remove TLS 1.0 support. Set MinVersion to tls.VersionTLS12 or higher.
+    For FIPS 140-3 mode (Go 1.24+), TLS 1.0 is automatically blocked.
+  links:
+    - title: "NIST SP 800-52 Rev 2"
+      url: "https://csrc.nist.gov/publications/detail/sp/800-52/rev-2/final"
+    - title: "RFC 8996 - Deprecating TLS 1.0 and TLS 1.1"
+      url: "https://datatracker.ietf.org/doc/html/rfc8996"
+  tag:
+    - "FIPS-140=Unacceptable"
+    - "TLS=1.0-Deprecated"
+    - "CWE=CWE-326"
+
+- ruleID: fips-go-exp-tls-00101
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Unacceptable: TLS 1.1 usage detected - not FIPS 140-3 compliant"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'tls\.VersionTLS11'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'VersionTLS11'
+          filePattern: "*.go"
+  message: |
+    TLS 1.1 Deprecated. TLS 1.1 is not allowed under FIPS 140-3 / SP 800-52 Rev 2.
+
+    TLS 1.1 issues:
+    - Uses deprecated cipher suites
+    - No support for modern AEAD ciphers
+    - Deprecated by NIST since 2021
+    - Support ended in major browsers
+
+    FIPS Requirements:
+    - TLS 1.2 minimum (with approved cipher suites)
+    - TLS 1.3 required since January 2024
+    - TLS 1.3 preferred for all new connections
+
+    Action: Remove TLS 1.1 support. Set MinVersion to tls.VersionTLS12 or higher.
+    For FIPS 140-3 mode (Go 1.24+), TLS 1.1 is automatically blocked.
+  links:
+    - title: "NIST SP 800-52 Rev 2"
+      url: "https://csrc.nist.gov/publications/detail/sp/800-52/rev-2/final"
+    - title: "RFC 8996 - Deprecating TLS 1.0 and TLS 1.1"
+      url: "https://datatracker.ietf.org/doc/html/rfc8996"
+  tag:
+    - "FIPS-140=Unacceptable"
+    - "TLS=1.1-Deprecated"
+    - "CWE=CWE-326"
+
+- ruleID: fips-go-exp-tls-00102
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "Requires Analysis: SSL 3.0 reference detected"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'tls\.VersionSSL30'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'VersionSSL30'
+          filePattern: "*.go"
+  message: |
+    SSL 3.0 Detected. SSL 3.0 is cryptographically broken and banned.
+
+    SSL 3.0 issues:
+    - POODLE attack (CVE-2014-3566)
+    - No modern cipher support
+    - Banned by RFC 7568 (2015)
+    - Never FIPS compliant
+
+    Action: Remove all SSL 3.0 references immediately.
+    Go's crypto/tls does not support SSL 3.0 by default.
+  links:
+    - title: "RFC 7568 - Deprecating SSL 3.0"
+      url: "https://datatracker.ietf.org/doc/html/rfc7568"
+  tag:
+    - "FIPS-140=Unacceptable"
+    - "TLS=SSL3-Banned"
+    - "CWE=CWE-327"
+
+- ruleID: fips-go-exp-tls-00200
+  labels:
+    - "konveyor.io/target=go"
+  effort: 1
+  category: potential
+  description: "PQC Readiness: TLS 1.2 only may block future requirements"
+  when:
+    builtin.filecontent:
+      pattern: 'MaxVersion\s*:\s*tls\.VersionTLS12'
+      filePattern: "*.go"
+  message: |
+    TLS 1.2 Maximum. Hardcoding MaxVersion to TLS 1.2 blocks TLS 1.3.
+
+    Impact:
+    - Blocks post-quantum key exchange (ML-KEM requires TLS 1.3)
+    - Blocks TLS 1.3 performance improvements
+    - NIST requires TLS 1.3 support since January 2024
+    - May fail FIPS 140-3 compliance checks
+
+    TLS 1.3 Benefits:
+    - Faster handshake (1-RTT, 0-RTT)
+    - Forward secrecy mandatory
+    - Post-quantum hybrid key exchange
+    - Simplified cipher suites
+
+    Action: Remove MaxVersion restriction or update to tls.VersionTLS13.
+  tag:
+    - "FIPS-140=Requires-Analysis"
+    - "TLS=1.2-Only"
+    - "PQC=Blocking"

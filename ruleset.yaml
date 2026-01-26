@@ -1,0 +1,7 @@
+name: fips-go-crypto
+description: |
+  FIPS 140 Compliance Rules for Go Cryptography.
+  Detects usage of non-FIPS approved cryptographic algorithms from golang.org/x/crypto
+  and provides guidance for migrating to FIPS-validated alternatives from the Go standard library.
+labels:
+  - "konveyor.io/target=go"

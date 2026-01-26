@@ -1,0 +1,258 @@
+- ruleID: fips-go-exp-cipher-00100
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Unacceptable: RC4 cipher suite detected"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'TLS_RSA_WITH_RC4_128_SHA'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'TLS_ECDHE_RSA_WITH_RC4_128_SHA'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'TLS_ECDHE_ECDSA_WITH_RC4_128_SHA'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'tls\.TLS_RSA_WITH_RC4'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'tls\.TLS_ECDHE.*RC4'
+          filePattern: "*.go"
+  message: |
+    RC4 Cipher Suite Banned. RC4 is cryptographically broken and prohibited.
+
+    RC4 vulnerabilities:
+    - Biases in keystream (Bar Mitzvah attack)
+    - Prohibited in TLS by RFC 7465 (2015)
+    - Broken in practice
+
+    Affected cipher suites:
+    - TLS_RSA_WITH_RC4_128_SHA
+    - TLS_ECDHE_RSA_WITH_RC4_128_SHA
+    - TLS_ECDHE_ECDSA_WITH_RC4_128_SHA
+
+    Action: Remove RC4 cipher suites from configuration.
+    Use AES-GCM based cipher suites instead.
+  links:
+    - title: "RFC 7465 - Prohibiting RC4 Cipher Suites"
+      url: "https://datatracker.ietf.org/doc/html/rfc7465"
+  tag:
+    - "FIPS-140=Unacceptable"
+    - "Cipher=RC4-Banned"
+    - "CWE=CWE-327"
+
+- ruleID: fips-go-exp-cipher-00101
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Unacceptable: 3DES cipher suite detected"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'TLS_RSA_WITH_3DES_EDE_CBC_SHA'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'tls\.TLS_RSA_WITH_3DES'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'tls\.TLS_ECDHE.*3DES'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '3DES_EDE_CBC'
+          filePattern: "*.go"
+  message: |
+    3DES Cipher Suite Deprecated. 3DES is deprecated by NIST as of 2023.
+
+    3DES vulnerabilities:
+    - 64-bit block size vulnerable to Sweet32 attack
+    - Slow performance compared to AES
+    - NIST SP 800-131A Rev 2 disallows after 2023
+
+    Affected cipher suites:
+    - TLS_RSA_WITH_3DES_EDE_CBC_SHA
+    - TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA
+
+    Action: Remove 3DES cipher suites. Use AES-GCM cipher suites:
+    - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+    - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+  links:
+    - title: "NIST SP 800-131A Rev 2 - Transitioning Cryptographic Algorithms"
+      url: "https://csrc.nist.gov/publications/detail/sp/800-131a/rev-2/final"
+    - title: "Sweet32 Attack"
+      url: "https://sweet32.info/"
+  tag:
+    - "FIPS-140=Unacceptable"
+    - "Cipher=3DES-Deprecated"
+    - "CWE=CWE-327"
+
+- ruleID: fips-go-exp-cipher-00102
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "Requires Analysis: CBC mode cipher suite detected"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'WITH_AES_128_CBC_SHA'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'WITH_AES_256_CBC_SHA'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'WITH_AES_128_CBC_SHA256'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'WITH_AES_256_CBC_SHA256'
+          filePattern: "*.go"
+  message: |
+    CBC Mode Cipher Suite. CBC cipher suites are less secure than GCM.
+
+    CBC in TLS issues:
+    - Vulnerable to padding oracle attacks (Lucky13, POODLE)
+    - Encrypt-then-MAC required for security
+    - Not as efficient as AEAD modes
+
+    While still FIPS-approved, GCM is preferred:
+    - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+    - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+    - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+    - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+
+    For TLS 1.3, only AEAD ciphers are available (no CBC).
+
+    Action: Prefer GCM cipher suites over CBC where possible.
+  links:
+    - title: "Lucky13 Attack"
+      url: "https://www.isg.rhul.ac.uk/tls/Lucky13.html"
+  tag:
+    - "FIPS-140=Requires-Analysis"
+    - "Cipher=CBC-Mode"
+
+- ruleID: fips-go-exp-cipher-00103
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "Requires Analysis: RSA key exchange cipher suite (no forward secrecy)"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'TLS_RSA_WITH_AES'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'tls\.TLS_RSA_WITH_AES'
+          filePattern: "*.go"
+  message: |
+    RSA Key Exchange (No Forward Secrecy). Static RSA key exchange detected.
+
+    Issues:
+    - No forward secrecy (PFS)
+    - Compromised server key exposes all past traffic
+    - Deprecated in TLS 1.3 (not available)
+    - NIST recommends ephemeral key exchange
+
+    Cipher suites without forward secrecy:
+    - TLS_RSA_WITH_AES_128_GCM_SHA256
+    - TLS_RSA_WITH_AES_256_GCM_SHA384
+    - TLS_RSA_WITH_AES_*_CBC_*
+
+    Preferred cipher suites (with forward secrecy):
+    - TLS_ECDHE_RSA_WITH_AES_*_GCM_*
+    - TLS_ECDHE_ECDSA_WITH_AES_*_GCM_*
+
+    Action: Use ECDHE key exchange for forward secrecy.
+  links:
+    - title: "NIST SP 800-52 Rev 2 - TLS Guidelines"
+      url: "https://csrc.nist.gov/publications/detail/sp/800-52/rev-2/final"
+  tag:
+    - "FIPS-140=Requires-Analysis"
+    - "Cipher=No-Forward-Secrecy"
+    - "CWE=CWE-326"
+
+- ruleID: fips-go-exp-cipher-00200
+  labels:
+    - "konveyor.io/target=go"
+  effort: 1
+  category: potential
+  description: "Acceptable: TLS 1.3 cipher suite detected"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'TLS_AES_128_GCM_SHA256'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'TLS_AES_256_GCM_SHA384'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'TLS_CHACHA20_POLY1305_SHA256'
+          filePattern: "*.go"
+  message: |
+    TLS 1.3 Cipher Suite. Modern AEAD cipher suite detected.
+
+    TLS 1.3 cipher suites:
+    - TLS_AES_128_GCM_SHA256: FIPS approved
+    - TLS_AES_256_GCM_SHA384: FIPS approved
+    - TLS_CHACHA20_POLY1305_SHA256: NOT FIPS approved
+
+    Note: ChaCha20-Poly1305 is secure but not FIPS-validated.
+    In FIPS 140-3 mode (Go 1.24+), only AES-GCM suites are negotiated.
+
+    For FIPS compliance, ensure only AES-GCM suites are used.
+  links:
+    - title: "Go FIPS 140-3 Documentation"
+      url: "https://go.dev/doc/security/fips140"
+    - title: "RFC 8446 - TLS 1.3"
+      url: "https://datatracker.ietf.org/doc/html/rfc8446"
+  tag:
+    - "FIPS-140=Acceptable-Evaluate"
+    - "Cipher=TLS-1.3"
+
+- ruleID: fips-go-exp-cipher-00201
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "Requires Analysis: ChaCha20-Poly1305 not FIPS approved"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'TLS_CHACHA20_POLY1305'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'CHACHA20_POLY1305_SHA256'
+          filePattern: "*.go"
+  message: |
+    ChaCha20-Poly1305 Not FIPS Approved. This cipher is secure but not validated.
+
+    ChaCha20-Poly1305:
+    - Modern AEAD cipher
+    - Excellent performance on devices without AES-NI
+    - Widely used (Google, Cloudflare)
+    - NOT included in FIPS 140-3 approved algorithms
+
+    In FIPS 140-3 mode:
+    - Go will not negotiate ChaCha20-Poly1305
+    - Only AES-GCM cipher suites are allowed
+
+    Action: For strict FIPS compliance, do not explicitly require
+    ChaCha20-Poly1305. Use AES-GCM as the primary cipher.
+  links:
+    - title: "NIST FIPS 140-3 Approved Algorithms"
+      url: "https://csrc.nist.gov/projects/cryptographic-algorithm-validation-program"
+  tag:
+    - "FIPS-140=Not-Approved"
+    - "Cipher=ChaCha20"

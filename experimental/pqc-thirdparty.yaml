@@ -1,0 +1,143 @@
+- ruleID: fips-go-pqc-exp-00400
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "PQC Inventory: Cloudflare CIRCL library detected"
+  when:
+    or:
+      - go.referenced:
+          pattern: "github.com/cloudflare/circl"
+      - go.dependency:
+          name: "github.com/cloudflare/circl"
+  message: |
+    Third-Party PQC Library. Cloudflare CIRCL library detected.
+
+    CIRCL provides post-quantum algorithms:
+    - Kyber KEM (modes 512, 768, 1024)
+    - Dilithium signatures (modes 2, 3, 5)
+    - ML-DSA (FIPS 204 modes 44, 65, 87)
+    - SLH-DSA (FIPS 205)
+    - Hybrid schemes (Ed25519-Dilithium)
+
+    Considerations:
+    - CIRCL is NOT FIPS-validated
+    - Useful for Go versions < 1.24 without native PQC
+    - Experimental - API may change
+    - Consider migration to crypto/mlkem (Go 1.24+)
+
+    Action: Evaluate whether to:
+    1. Continue using CIRCL for algorithms not in stdlib
+    2. Migrate to crypto/mlkem for key exchange (Go 1.24+)
+    3. Wait for crypto/mldsa in future Go versions
+  links:
+    - title: "Cloudflare CIRCL"
+      url: "https://github.com/cloudflare/circl"
+    - title: "CIRCL Go Package"
+      url: "https://pkg.go.dev/github.com/cloudflare/circl"
+  tag:
+    - "PQC=Third-Party"
+    - "Crypto=CIRCL"
+    - "FIPS-140=Not-Validated"
+
+- ruleID: fips-go-pqc-exp-00401
+  labels:
+    - "konveyor.io/target=go"
+  effort: 1
+  category: potential
+  description: "PQC Inventory: CIRCL Kyber KEM usage detected"
+  when:
+    or:
+      - go.referenced:
+          pattern: "github.com/cloudflare/circl/kem/kyber"
+      - builtin.filecontent:
+          pattern: 'circl/kem/kyber'
+          filePattern: "*.go"
+  message: |
+    CIRCL Kyber KEM Detected. Using Cloudflare's Kyber implementation.
+
+    CIRCL Kyber modes:
+    - kyber512: 128-bit security (smallest)
+    - kyber768: 192-bit security (recommended)
+    - kyber1024: 256-bit security (highest)
+
+    Migration Path:
+    - Go 1.24+: Consider migrating to crypto/mlkem
+    - crypto/mlkem provides ML-KEM-768 and ML-KEM-1024
+    - ML-KEM is the NIST-standardized version of Kyber
+
+    Note: CIRCL Kyber may differ slightly from final ML-KEM standard.
+  tag:
+    - "PQC=Kyber"
+    - "Crypto=CIRCL"
+
+- ruleID: fips-go-pqc-exp-00402
+  labels:
+    - "konveyor.io/target=go"
+  effort: 1
+  category: potential
+  description: "PQC Inventory: CIRCL Dilithium signatures detected"
+  when:
+    or:
+      - go.referenced:
+          pattern: "github.com/cloudflare/circl/sign/dilithium"
+      - builtin.filecontent:
+          pattern: 'circl/sign/dilithium'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'circl/sign/mldsa'
+          filePattern: "*.go"
+  message: |
+    CIRCL Dilithium/ML-DSA Detected. Using Cloudflare's post-quantum signatures.
+
+    CIRCL provides:
+    - Dilithium modes 2, 3, 5 (original)
+    - ML-DSA modes 44, 65, 87 (FIPS 204 standardized)
+
+    ML-DSA Security Levels:
+    - ML-DSA-44: ~128-bit security
+    - ML-DSA-65: ~192-bit security
+    - ML-DSA-87: ~256-bit security
+
+    Migration Path:
+    - Go stdlib does not yet include ML-DSA
+    - Expected in Go 1.26 or later
+    - CIRCL is the recommended option for now
+
+    Note: For FIPS compliance, ML-DSA (FIPS 204) is preferred over Dilithium.
+  tag:
+    - "PQC=Dilithium"
+    - "Crypto=CIRCL"
+
+- ruleID: fips-go-pqc-exp-00403
+  labels:
+    - "konveyor.io/target=go"
+  effort: 1
+  category: potential
+  description: "PQC Inventory: CIRCL hybrid signatures detected"
+  when:
+    or:
+      - go.referenced:
+          pattern: "github.com/cloudflare/circl/sign/eddilithium"
+      - builtin.filecontent:
+          pattern: 'circl/sign/eddilithium'
+          filePattern: "*.go"
+  message: |
+    CIRCL Hybrid Signatures Detected. Using Ed25519+Dilithium hybrid scheme.
+
+    Hybrid schemes combine:
+    - eddilithium2: Ed25519 + Dilithium2
+    - eddilithium3: Ed448 + Dilithium3
+
+    Benefits:
+    - Security if either algorithm remains unbroken
+    - Transition strategy for PQC migration
+    - Recommended by Dilithium authors
+
+    Trade-offs:
+    - Larger signatures than pure algorithms
+    - More complex verification
+    - Not yet standardized by NIST
+  tag:
+    - "PQC=Hybrid"
+    - "Crypto=CIRCL"

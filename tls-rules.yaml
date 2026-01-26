@@ -1,0 +1,445 @@
+- ruleID: fips-go-tls-00100
+  labels:
+    - "konveyor.io/target=go"
+  effort: 5
+  category: mandatory
+  description: "Unacceptable: InsecureSkipVerify disables certificate validation"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'InsecureSkipVerify\s*:\s*true'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.InsecureSkipVerify\s*=\s*true'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.Insecure\s*=\s*true'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'TLSClientConfig\.Insecure\s*=\s*true'
+          filePattern: "*.go"
+  message: |
+    Critical Security Vulnerability. InsecureSkipVerify: true disables certificate validation,
+    allowing man-in-the-middle attacks.
+
+    Action: Remove immediately. If used for testing, ensure it never reaches production.
+    Use build tags or environment checks to prevent this in production builds.
+  tag:
+    - "FIPS-140=Unacceptable"
+    - "TLS=Security-Bypass"
+    - "CWE=CWE-295"
+
+- ruleID: fips-go-tls-00101
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Unacceptable: MaxVersion blocks TLS 1.3 and Post-Quantum Cryptography"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'MaxVersion\s*:\s*tls\.VersionTLS1[012]'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.MaxVersion\s*=\s*tls\.VersionTLS1[012]'
+          filePattern: "*.go"
+  message: |
+    Blocks PQC. Post-Quantum Cryptography requires TLS 1.3.
+    Hardcoding MaxVersion to TLS 1.2 or below prevents the upgrade path.
+
+    Action: Remove MaxVersion or set it dynamically from the API Server profile.
+  links:
+    - title: "NIST SP 800-52 Rev 2 - TLS Guidelines"
+      url: "https://csrc.nist.gov/publications/detail/sp/800-52/rev-2/final"
+  tag:
+    - "FIPS-140=Unacceptable"
+    - "TLS=Blocks-Agility"
+    - "CWE=CWE-757"
+
+- ruleID: fips-go-tls-00102
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Unacceptable: Hardcoded CipherSuites blocks algorithm rotation"
+  when:
+    builtin.filecontent:
+      pattern: 'CipherSuites\s*:\s*\['
+      filePattern: "*.go"
+  message: |
+    Blocks Agility. Hardcoded cipher suites prevent the platform from
+    rotating insecure algorithms when vulnerabilities are discovered.
+
+    Action: Remove the CipherSuites field. Inherit ciphers from the API Server profile.
+  links:
+    - title: "NIST SP 800-52 Rev 2 - TLS Guidelines"
+      url: "https://csrc.nist.gov/publications/detail/sp/800-52/rev-2/final"
+  tag:
+    - "FIPS-140=Unacceptable"
+    - "TLS=Blocks-Agility"
+    - "CWE=CWE-757"
+
+- ruleID: fips-go-tls-00103
+  labels:
+    - "konveyor.io/target=go"
+  effort: 5
+  category: mandatory
+  description: "Unacceptable: Certificate validation override breaks trust chain"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: '\.VerifyPeerCertificate\s*=\s*nil'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.VerifyConnection\s*=\s*func.*\{\s*return\s+nil\s*\}'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.RootCAs\s*=\s*nil'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.ClientCAs\s*=\s*nil'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.CABundle\s*=\s*nil'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'ClientConfig\.CABundle\s*=\s*nil'
+          filePattern: "*.go"
+  message: |
+    Critical Security Vulnerability. Certificate validation override breaks the trust chain
+    and enables man-in-the-middle attacks.
+
+    Detected patterns include:
+    - VerifyPeerCertificate = nil
+    - VerifyConnection returning nil
+    - RootCAs = nil
+    - ClientCAs = nil
+    - CABundle = nil
+
+    Action: Use proper certificate management and trust the cluster CA bundle.
+    Never disable certificate validation in production.
+  tag:
+    - "FIPS-140=Unacceptable"
+    - "TLS=Trust-Chain-Bypass"
+    - "CWE=CWE-295"
+
+- ruleID: fips-go-tls-00104
+  labels:
+    - "konveyor.io/target=go"
+  effort: 4
+  category: mandatory
+  description: "Unacceptable: gRPC TLS credential override bypasses service mesh security"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'grpc\.WithInsecure\s*\(\s*\)'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'grpc\.WithTransportCredentials\s*\(\s*insecure\.NewCredentials\s*\(\s*\)\s*\)'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'insecure\.NewCredentials\s*\(\s*\)'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'grpc\.Creds\s*\(\s*insecure\.NewCredentials'
+          filePattern: "*.go"
+  message: |
+    gRPC Insecure Connection. Using grpc.WithInsecure() or insecure.NewCredentials()
+    bypasses TLS entirely, eliminating transport security.
+
+    This defeats:
+    - Service mesh mTLS policies
+    - Certificate-based authentication
+    - Transport encryption
+
+    Action: Use service mesh mTLS or properly configured TLS credentials.
+    For development, use environment-based switches that are disabled in production.
+  tag:
+    - "FIPS-140=Unacceptable"
+    - "TLS=gRPC-Insecure"
+    - "CWE=CWE-295"
+
+- ruleID: fips-go-tls-00105
+  labels:
+    - "konveyor.io/target=go"
+  effort: 4
+  category: mandatory
+  description: "Unacceptable: Kubernetes client TLS override bypasses cluster security"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'TLSClientConfig\s*:\s*rest\.TLSClientConfig\s*\{[^}]*Insecure\s*:\s*true'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.TLSClientConfig\.Insecure\s*=\s*true'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'rest\.TLSClientConfig\s*\{[^}]*Insecure\s*:\s*true'
+          filePattern: "*.go"
+  message: |
+    Kubernetes Client Insecure. Setting Insecure: true in rest.TLSClientConfig
+    bypasses cluster security policies and certificate validation.
+
+    This allows:
+    - Unauthorized API server access
+    - Man-in-the-middle attacks on cluster communication
+    - Bypass of RBAC through certificate impersonation
+
+    Action: Use in-cluster configuration with properly configured service accounts.
+    Never set Insecure: true in production Kubernetes clients.
+  tag:
+    - "FIPS-140=Unacceptable"
+    - "TLS=K8s-Client-Insecure"
+    - "CWE=CWE-295"
+
+- ruleID: fips-go-tls-00106
+  labels:
+    - "konveyor.io/target=go"
+  effort: 4
+  category: mandatory
+  description: "Unacceptable: Service mesh TLS bypass detected"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: '"http://"\s*\+\s*\w+\s*\+\s*":"'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'http\.Get\s*\(\s*"http://"'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'http\.Post\s*\(\s*"http://"'
+          filePattern: "*.go"
+  message: |
+    Service Mesh Bypass. Direct HTTP (non-TLS) communication bypasses service mesh
+    mTLS protection and security observability.
+
+    In a service mesh environment, all service-to-service communication should
+    go through the mesh to benefit from:
+    - Mutual TLS (mTLS) encryption
+    - Identity-based access control
+    - Traffic observability and tracing
+
+    Action: Use service mesh routing. Let the sidecar proxy handle TLS.
+    Use service DNS names instead of direct IP addresses.
+  tag:
+    - "FIPS-140=Unacceptable"
+    - "TLS=Mesh-Bypass"
+    - "CWE=CWE-295"
+
+- ruleID: fips-go-tls-00107
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Unacceptable: Database connection with TLS/SSL disabled"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'sslmode=disable'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'ssl=false'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'tls=false'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.SSLMode\s*=\s*"disable"'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.TLSConfig\s*=\s*"false"'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.SSL\.Enable\s*=\s*false'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.TLS\.Enable\s*=\s*false'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.Net\.TLS\.Enable\s*=\s*false'
+          filePattern: "*.go"
+  message: |
+    Database TLS Disabled. Disabling TLS/SSL for database connections exposes
+    sensitive data to network interception.
+
+    Detected patterns include:
+    - sslmode=disable (PostgreSQL)
+    - ssl=false / tls=false (MySQL)
+    - SSLMode = "disable"
+    - TLS.Enable = false
+
+    Action: Enable TLS for all database connections. Use certificate verification
+    with trusted CA certificates. Configure connection strings to require TLS.
+  tag:
+    - "FIPS-140=Unacceptable"
+    - "TLS=Database-Insecure"
+    - "CWE=CWE-295"
+
+- ruleID: fips-go-tls-00108
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Unacceptable: Empty ServerName disables hostname verification"
+  when:
+    builtin.filecontent:
+      pattern: '\.ServerName\s*=\s*""'
+      filePattern: "*.go"
+  message: |
+    Hostname Verification Disabled. Setting ServerName to empty string disables
+    TLS hostname verification, allowing certificate substitution attacks.
+
+    The TLS handshake will accept any valid certificate, even if it was issued
+    for a different hostname.
+
+    Action: Set ServerName to the expected hostname of the server you are connecting to.
+    This ensures the certificate matches the intended destination.
+  tag:
+    - "FIPS-140=Unacceptable"
+    - "TLS=Hostname-Bypass"
+    - "CWE=CWE-295"
+
+- ruleID: fips-go-tls-00200
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "Requires Analysis: Manual tls.Config creation detected"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: '&tls\.Config\s*\{'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'new\s*\(\s*tls\.Config\s*\)'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'tls\.Config\s*\{'
+          filePattern: "*.go"
+  message: |
+    Manual Configuration. You are manually creating a tls.Config struct
+    instead of loading the cluster default.
+
+    Action: Check the source of configuration values.
+    - If loading from API Server profile: acceptable
+    - If hardcoding values: refactor to use dynamic profile loading
+
+    Consider using apiserver.ObserveTLSSecurityProfile for automatic sync.
+  tag:
+    - "FIPS-140=Requires-Analysis"
+    - "TLS=Manual-Config"
+    - "CWE=CWE-757"
+
+- ruleID: fips-go-tls-00201
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "Requires Analysis: MinVersion hardcoded may block future TLS requirements"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'MinVersion\s*:\s*tls\.VersionTLS1[012]'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.MinVersion\s*=\s*tls\.VersionTLS1[012]'
+          filePattern: "*.go"
+  message: |
+    Legacy Lock. While TLS 1.2 is currently secure, hardcoding MinVersion
+    prevents future enforcement of TLS 1.3-only requirements.
+
+    Action: Better to load this from the API Server profile, but less critical
+    than MaxVersion. Evaluate if dynamic configuration is feasible.
+  links:
+    - title: "NIST SP 800-52 Rev 2 - TLS Guidelines"
+      url: "https://csrc.nist.gov/publications/detail/sp/800-52/rev-2/final"
+  tag:
+    - "FIPS-140=Requires-Analysis"
+    - "TLS=Version-Lock"
+    - "CWE=CWE-757"
+
+- ruleID: fips-go-tls-00202
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "Requires Analysis: HTTP client with custom TLS configuration"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'http\.Transport\s*\{[^}]*TLSClientConfig'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '&http\.Transport\s*\{[^}]*TLSClientConfig'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.TLSClientConfig\s*='
+          filePattern: "*.go"
+  message: |
+    Custom HTTP Client TLS. HTTP clients with custom TLSClientConfig may override
+    platform TLS profile settings.
+
+    Action: Review TLS configuration to ensure it doesn't override platform profiles:
+    - Remove MaxVersion restrictions that block TLS 1.3
+    - Use platform TLS profiles when available
+    - Ensure MinVersion allows TLS 1.3 if required by profile
+    - Do not set InsecureSkipVerify: true
+  tag:
+    - "FIPS-140=Requires-Analysis"
+    - "TLS=HTTP-Client-Config"
+    - "CWE=CWE-757"
+
+- ruleID: fips-go-tls-00203
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "Requires Analysis: HTTP server with custom TLS configuration"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'http\.Server\s*\{[^}]*TLSConfig'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '&http\.Server\s*\{[^}]*TLSConfig'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.TLSConfig\s*=\s*&tls\.Config'
+          filePattern: "*.go"
+  message: |
+    Custom HTTP Server TLS. HTTP servers with custom TLSConfig may override
+    platform TLS profile settings.
+
+    Action: Review TLS configuration to ensure it doesn't override platform profiles:
+    - Remove MaxVersion restrictions that block TLS 1.3
+    - Use platform TLS profiles when available
+    - Ensure MinVersion allows TLS 1.3 if required by profile
+    - Fetch TLS configuration from API Server, Ingress, or Kubelet configuration
+  tag:
+    - "FIPS-140=Requires-Analysis"
+    - "TLS=HTTP-Server-Config"
+    - "CWE=CWE-757"
+
+- ruleID: fips-go-tls-00204
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: potential
+  description: "Requires Analysis: Reflection-based InsecureSkipVerify manipulation"
+  when:
+    builtin.filecontent:
+      pattern: 'FieldByName\s*\(\s*"InsecureSkipVerify"\s*\)'
+      filePattern: "*.go"
+  message: |
+    Reflection TLS Bypass. Using reflection to set InsecureSkipVerify indicates
+    an attempt to dynamically disable certificate validation, possibly to bypass
+    static analysis detection.
+
+    This is a high-risk pattern that suggests intentional security bypass.
+
+    Action: Remove reflection-based TLS configuration manipulation.
+    Use explicit, auditable configuration instead.
+  tag:
+    - "FIPS-140=Requires-Analysis"
+    - "TLS=Reflection-Bypass"
+    - "CWE=CWE-295"

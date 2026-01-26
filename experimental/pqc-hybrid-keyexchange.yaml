@@ -1,0 +1,155 @@
+- ruleID: fips-go-pqc-exp-00600
+  labels:
+    - "konveyor.io/target=go"
+  effort: 1
+  category: potential
+  description: "PQC Inventory: X25519MLKEM768 hybrid key exchange detected"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'X25519MLKEM768'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'tls\.X25519MLKEM768'
+          filePattern: "*.go"
+  message: |
+    Hybrid PQC Key Exchange. X25519MLKEM768 detected.
+
+    X25519MLKEM768 combines:
+    - X25519: Classical elliptic curve Diffie-Hellman
+    - ML-KEM-768: Post-quantum key encapsulation (FIPS 203)
+
+    Security Properties:
+    - Secure if either X25519 OR ML-KEM remains unbroken
+    - Protects against "harvest now, decrypt later" attacks
+    - NIST-standardized (ML-KEM is FIPS 203)
+
+    Go Support:
+    - Go 1.24+: Enabled by default in crypto/tls
+    - CurveID constant: tls.X25519MLKEM768 (4588)
+
+    This is the recommended configuration for PQC-ready TLS.
+  links:
+    - title: "Go crypto/tls Documentation"
+      url: "https://pkg.go.dev/crypto/tls"
+  tag:
+    - "PQC=Hybrid"
+    - "TLS=X25519MLKEM768"
+    - "Quantum=Protected"
+
+- ruleID: fips-go-pqc-exp-00601
+  labels:
+    - "konveyor.io/target=go"
+  effort: 1
+  category: potential
+  description: "PQC Inventory: SecP256r1MLKEM768 hybrid key exchange detected"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'SecP256r1MLKEM768'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'tls\.SecP256r1MLKEM768'
+          filePattern: "*.go"
+  message: |
+    Hybrid PQC Key Exchange. SecP256r1MLKEM768 detected.
+
+    SecP256r1MLKEM768 combines:
+    - P-256 (secp256r1): NIST classical elliptic curve
+    - ML-KEM-768: Post-quantum key encapsulation (FIPS 203)
+
+    Security Properties:
+    - Secure if either P-256 OR ML-KEM remains unbroken
+    - Uses NIST-approved curves (vs X25519 which is not NIST)
+    - May be preferred in strict FIPS environments
+
+    Go Support:
+    - Go 1.24+: Available in crypto/tls
+    - CurveID constant: tls.SecP256r1MLKEM768 (4587)
+  tag:
+    - "PQC=Hybrid"
+    - "TLS=SecP256r1MLKEM768"
+    - "Quantum=Protected"
+
+- ruleID: fips-go-pqc-exp-00602
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "PQC Migration: Legacy X25519Kyber768Draft00 detected"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'X25519Kyber768Draft00'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'Kyber768Draft00'
+          filePattern: "*.go"
+  message: |
+    Legacy Draft PQC. X25519Kyber768Draft00 detected.
+
+    X25519Kyber768Draft00:
+    - Experimental hybrid from Go 1.23
+    - Based on draft Kyber specification
+    - REMOVED in Go 1.24
+
+    Migration Required:
+    - Go 1.24 replaced this with X25519MLKEM768
+    - ML-KEM is the final NIST standard (FIPS 203)
+    - Draft and final versions are NOT interoperable
+
+    Action:
+    1. Upgrade to Go 1.24+
+    2. Update code to use X25519MLKEM768
+    3. Remove references to Draft00 variants
+    4. Coordinate with peers who may still use draft
+  tag:
+    - "PQC=Legacy-Draft"
+    - "Migration=Required"
+
+- ruleID: fips-go-pqc-exp-00700
+  labels:
+    - "konveyor.io/target=go"
+  effort: 1
+  category: potential
+  description: "PQC Inventory: crypto/mlkem package usage detected"
+  when:
+    or:
+      - go.referenced:
+          pattern: "crypto/mlkem"
+      - builtin.filecontent:
+          pattern: '"crypto/mlkem"'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'mlkem\.DecapsulationKey'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'mlkem\.EncapsulationKey'
+          filePattern: "*.go"
+  message: |
+    Native ML-KEM Usage. Go's crypto/mlkem package detected.
+
+    crypto/mlkem (Go 1.24+) provides:
+    - ML-KEM-768: 192-bit security, recommended
+    - ML-KEM-1024: 256-bit security, high security
+
+    FIPS Status:
+    - ML-KEM is standardized in FIPS 203
+    - Go's implementation is part of FIPS 140-3 module
+    - CMVP validation pending
+
+    Usage:
+    - Direct KEM operations for custom protocols
+    - Automatic via crypto/tls with X25519MLKEM768
+
+    This is the recommended way to use PQC in Go 1.24+.
+  links:
+    - title: "Go crypto/mlkem Documentation"
+      url: "https://pkg.go.dev/crypto/mlkem"
+    - title: "NIST FIPS 203 (ML-KEM)"
+      url: "https://csrc.nist.gov/publications/detail/fips/203/final"
+  tag:
+    - "PQC=Native"
+    - "Crypto=ML-KEM"
+    - "FIPS-140=Acceptable"
+    - "Standard=FIPS-203"

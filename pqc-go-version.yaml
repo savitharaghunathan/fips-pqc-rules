@@ -1,0 +1,32 @@
+- ruleID: fips-go-pqc-version-00100
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "PQC Readiness: Go version lacks native PQC algorithm support"
+  when:
+    go.dependency:
+      name: "go"
+      lowerbound: "1.21"
+      upperbound: "1.24"
+  message: |
+    Go Version Compatibility. This Go version does not include native post-quantum
+    cryptography (PQC) algorithm support.
+
+    Go 1.24+ is required for:
+    - ML-KEM (Kyber) - post-quantum key encapsulation
+    - Future ML-DSA (Dilithium) support
+
+    Impact:
+    - Cannot use NIST-standardized PQC algorithms natively
+    - Third-party PQC libraries required for quantum resistance
+    - Mixed-version environments may have compatibility issues
+
+    Action: Update to Go 1.24 or higher for native PQC support.
+    Plan Go version upgrade as part of PQC migration strategy.
+  links:
+    - title: "Go 1.24 Release Notes"
+      url: "https://go.dev/doc/go1.24"
+  tag:
+    - "PQC=Version-Upgrade-Required"
+    - "Go=Pre-1.24"

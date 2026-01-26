@@ -1,0 +1,423 @@
+- ruleID: fips-go-pqc-00100
+  labels:
+    - "konveyor.io/target=go"
+  effort: 1
+  category: potential
+  description: "PQC Inventory: RSA cryptography usage detected"
+  when:
+    or:
+      - go.referenced:
+          pattern: "crypto/rsa"
+      - builtin.filecontent:
+          pattern: 'rsa\.GenerateKey\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'rsa\.EncryptPKCS1v15\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'rsa\.EncryptOAEP\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'rsa\.DecryptPKCS1v15\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'rsa\.DecryptOAEP\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'rsa\.SignPKCS1v15\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'rsa\.SignPSS\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'rsa\.VerifyPKCS1v15\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'rsa\.VerifyPSS\s*\('
+          filePattern: "*.go"
+  message: |
+    PQC Migration Inventory: RSA cryptography detected.
+
+    RSA is vulnerable to quantum computers via Shor's algorithm.
+    A cryptographically relevant quantum computer (CRQC) could break RSA
+    of any key size in polynomial time.
+
+    Current FIPS Status: APPROVED (with minimum 2048-bit keys)
+    PQC Status: MIGRATION REQUIRED
+
+    RSA operations found:
+    - Key generation
+    - Encryption (PKCS#1 v1.5, OAEP)
+    - Signatures (PKCS#1 v1.5, PSS)
+
+    Action: Catalog this usage for PQC migration planning.
+    Consider hybrid schemes during transition period.
+
+    NIST PQC Alternatives:
+    - Encryption: ML-KEM (Kyber)
+    - Signatures: ML-DSA (Dilithium), SLH-DSA (SPHINCS+)
+  links:
+    - title: "NIST Post-Quantum Cryptography"
+      url: "https://csrc.nist.gov/projects/post-quantum-cryptography"
+  tag:
+    - "PQC=Migration-Required"
+    - "Crypto=RSA"
+    - "Quantum=Vulnerable"
+
+- ruleID: fips-go-pqc-00101
+  labels:
+    - "konveyor.io/target=go"
+  effort: 1
+  category: potential
+  description: "PQC Inventory: ECDSA signature usage detected"
+  when:
+    or:
+      - go.referenced:
+          pattern: "crypto/ecdsa"
+      - builtin.filecontent:
+          pattern: 'ecdsa\.GenerateKey\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'ecdsa\.Sign\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'ecdsa\.SignASN1\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'ecdsa\.Verify\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'ecdsa\.VerifyASN1\s*\('
+          filePattern: "*.go"
+  message: |
+    PQC Migration Inventory: ECDSA signatures detected.
+
+    ECDSA is vulnerable to quantum computers via Shor's algorithm.
+    Elliptic curve discrete log can be solved in polynomial time by CRQC.
+
+    Current FIPS Status: APPROVED (NIST curves P-256, P-384, P-521)
+    PQC Status: MIGRATION REQUIRED
+
+    ECDSA operations found:
+    - Key generation
+    - Signature creation
+    - Signature verification
+
+    Action: Catalog this usage for PQC migration planning.
+
+    NIST PQC Alternatives for Signatures:
+    - ML-DSA (Dilithium) - lattice-based, fast
+    - SLH-DSA (SPHINCS+) - hash-based, conservative
+  links:
+    - title: "NIST Post-Quantum Cryptography"
+      url: "https://csrc.nist.gov/projects/post-quantum-cryptography"
+  tag:
+    - "PQC=Migration-Required"
+    - "Crypto=ECDSA"
+    - "Quantum=Vulnerable"
+
+- ruleID: fips-go-pqc-00102
+  labels:
+    - "konveyor.io/target=go"
+  effort: 1
+  category: potential
+  description: "PQC Inventory: ECDH key exchange usage detected"
+  when:
+    or:
+      - go.referenced:
+          pattern: "crypto/ecdh"
+      - builtin.filecontent:
+          pattern: 'ecdh\.P256\s*\(\s*\)'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'ecdh\.P384\s*\(\s*\)'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'ecdh\.P521\s*\(\s*\)'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'ecdh\.X25519\s*\(\s*\)'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.ECDH\s*\('
+          filePattern: "*.go"
+  message: |
+    PQC Migration Inventory: ECDH key exchange detected.
+
+    ECDH is vulnerable to quantum computers via Shor's algorithm.
+    Both NIST curves and X25519 will be broken by CRQC.
+
+    Current FIPS Status: APPROVED (NIST curves only, X25519 not approved)
+    PQC Status: MIGRATION REQUIRED
+
+    ECDH operations found:
+    - Key exchange using P-256, P-384, P-521
+    - Possibly X25519 (not FIPS approved)
+
+    Action: Catalog this usage for PQC migration planning.
+
+    NIST PQC Alternatives for Key Exchange:
+    - ML-KEM (Kyber) - lattice-based key encapsulation
+    - Hybrid schemes: ECDH + ML-KEM during transition
+  links:
+    - title: "NIST Post-Quantum Cryptography"
+      url: "https://csrc.nist.gov/projects/post-quantum-cryptography"
+  tag:
+    - "PQC=Migration-Required"
+    - "Crypto=ECDH"
+    - "Quantum=Vulnerable"
+
+- ruleID: fips-go-pqc-00103
+  labels:
+    - "konveyor.io/target=go"
+  effort: 1
+  category: potential
+  description: "PQC Inventory: Ed25519 signature usage detected"
+  when:
+    or:
+      - go.referenced:
+          pattern: "crypto/ed25519"
+      - builtin.filecontent:
+          pattern: 'ed25519\.GenerateKey\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'ed25519\.Sign\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'ed25519\.Verify\s*\('
+          filePattern: "*.go"
+  message: |
+    PQC Migration Inventory: Ed25519 signatures detected.
+
+    Ed25519 is vulnerable to quantum computers via Shor's algorithm.
+    Based on Curve25519 which will be broken by CRQC.
+
+    Current FIPS Status: APPROVED (as of FIPS 186-5)
+    PQC Status: MIGRATION REQUIRED
+
+    Ed25519 operations found:
+    - Key generation
+    - Signature creation
+    - Signature verification
+
+    Action: Catalog this usage for PQC migration planning.
+
+    NIST PQC Alternatives for Signatures:
+    - ML-DSA (Dilithium) - similar performance profile
+    - SLH-DSA (SPHINCS+) - hash-based, conservative
+  tag:
+    - "PQC=Migration-Required"
+    - "Crypto=Ed25519"
+    - "Quantum=Vulnerable"
+
+- ruleID: fips-go-pqc-00104
+  labels:
+    - "konveyor.io/target=go"
+  effort: 1
+  category: potential
+  description: "PQC Inventory: Elliptic curve operations detected"
+  when:
+    or:
+      - go.referenced:
+          pattern: "crypto/elliptic"
+      - builtin.filecontent:
+          pattern: 'elliptic\.P224\s*\(\s*\)'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'elliptic\.P256\s*\(\s*\)'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'elliptic\.P384\s*\(\s*\)'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'elliptic\.P521\s*\(\s*\)'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.ScalarMult\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.ScalarBaseMult\s*\('
+          filePattern: "*.go"
+  message: |
+    PQC Migration Inventory: Elliptic curve operations detected.
+
+    All elliptic curve cryptography is vulnerable to quantum computers.
+    Shor's algorithm solves ECDLP in polynomial time.
+
+    Current FIPS Status: APPROVED (NIST curves)
+    PQC Status: MIGRATION REQUIRED
+
+    Detected curves:
+    - P-224 (112-bit security, not recommended)
+    - P-256 (128-bit security)
+    - P-384 (192-bit security)
+    - P-521 (256-bit security)
+
+    Note: Larger curves do NOT provide quantum resistance.
+
+    Action: Catalog all ECC usage for PQC migration planning.
+  tag:
+    - "PQC=Migration-Required"
+    - "Crypto=Elliptic-Curves"
+    - "Quantum=Vulnerable"
+
+- ruleID: fips-go-pqc-00200
+  labels:
+    - "konveyor.io/target=go"
+  effort: 1
+  category: potential
+  description: "PQC Inventory: Diffie-Hellman key exchange detected"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'dh\.GenerateKey\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'dh\.ComputeSecret\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'big\.Int.*Exp\s*\('
+          filePattern: "*.go"
+  message: |
+    PQC Migration Inventory: Diffie-Hellman key exchange detected.
+
+    Classical DH is vulnerable to quantum computers via Shor's algorithm.
+    Discrete logarithm can be solved in polynomial time by CRQC.
+
+    Current FIPS Status: APPROVED (with proper parameters)
+    PQC Status: MIGRATION REQUIRED
+
+    Action: Catalog this usage for PQC migration planning.
+
+    NIST PQC Alternatives for Key Exchange:
+    - ML-KEM (Kyber) - lattice-based key encapsulation
+    - Hybrid schemes: DH + ML-KEM during transition
+  tag:
+    - "PQC=Migration-Required"
+    - "Crypto=Diffie-Hellman"
+    - "Quantum=Vulnerable"
+
+- ruleID: fips-go-pqc-00300
+  labels:
+    - "konveyor.io/target=go"
+  effort: 1
+  category: potential
+  description: "PQC Inventory: DSA signature usage detected"
+  when:
+    or:
+      - go.referenced:
+          pattern: "crypto/dsa"
+      - builtin.filecontent:
+          pattern: 'dsa\.GenerateKey\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'dsa\.Sign\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'dsa\.Verify\s*\('
+          filePattern: "*.go"
+  message: |
+    PQC Migration Inventory: DSA signatures detected.
+
+    DSA is vulnerable to quantum computers via Shor's algorithm.
+    Additionally, DSA is being phased out in favor of ECDSA.
+
+    Current FIPS Status: DEPRECATED (use ECDSA or Ed25519 instead)
+    PQC Status: MIGRATION REQUIRED
+
+    Action:
+    1. Migrate away from DSA to ECDSA (short-term)
+    2. Plan migration to PQC signatures (long-term)
+
+    NIST PQC Alternatives for Signatures:
+    - ML-DSA (Dilithium)
+    - SLH-DSA (SPHINCS+)
+  tag:
+    - "PQC=Migration-Required"
+    - "Crypto=DSA-Deprecated"
+    - "Quantum=Vulnerable"
+
+- ruleID: fips-go-pqc-00400
+  labels:
+    - "konveyor.io/target=go"
+  effort: 1
+  category: potential
+  description: "PQC Inventory: Hash function usage - quantum security assessment"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'sha256\.New\s*\(\s*\)'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'sha256\.Sum256\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'sha512\.New\s*\(\s*\)'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'sha512\.Sum512\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'sha3\.New256\s*\(\s*\)'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'sha3\.New512\s*\(\s*\)'
+          filePattern: "*.go"
+  message: |
+    PQC Inventory: Hash function usage detected.
+
+    Hash functions are affected by Grover's algorithm, which provides
+    quadratic speedup for collision/preimage attacks.
+
+    Quantum Security Levels:
+    - SHA-256: 128-bit classical → 128-bit quantum (for collision)
+    - SHA-512: 256-bit classical → 256-bit quantum (for collision)
+    - SHA-3: Designed with quantum resistance in mind
+
+    Current FIPS Status: APPROVED
+    PQC Status: ACCEPTABLE (SHA-256+ provides adequate quantum security)
+
+    Recommendations:
+    - SHA-256 remains secure for most applications
+    - SHA-512 provides extra margin
+    - SHA-3 is preferred for new high-security applications
+  tag:
+    - "PQC=Acceptable"
+    - "Crypto=Hash-Functions"
+    - "Quantum=Resistant"
+
+- ruleID: fips-go-pqc-00500
+  labels:
+    - "konveyor.io/target=go"
+  effort: 1
+  category: potential
+  description: "PQC Inventory: AES usage - quantum security assessment"
+  when:
+    or:
+      - go.referenced:
+          pattern: "crypto/aes"
+      - builtin.filecontent:
+          pattern: 'aes\.NewCipher\s*\('
+          filePattern: "*.go"
+  message: |
+    PQC Inventory: AES symmetric encryption detected.
+
+    AES is affected by Grover's algorithm, which provides
+    quadratic speedup for key search attacks.
+
+    Quantum Security Levels:
+    - AES-128: 128-bit classical → 64-bit quantum
+    - AES-192: 192-bit classical → 96-bit quantum
+    - AES-256: 256-bit classical → 128-bit quantum
+
+    Current FIPS Status: APPROVED
+    PQC Status: ACCEPTABLE (AES-256 recommended)
+
+    Recommendations:
+    - Use AES-256 for quantum-resistant symmetric encryption
+    - AES-128 may be insufficient in post-quantum era
+    - No migration to new algorithms required
+  tag:
+    - "PQC=Acceptable"
+    - "Crypto=AES"
+    - "Quantum=AES-256-Recommended"

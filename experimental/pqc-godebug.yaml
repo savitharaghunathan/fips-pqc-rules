@@ -1,0 +1,121 @@
+- ruleID: fips-go-pqc-exp-00200
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: mandatory
+  description: "Unacceptable: GODEBUG disables post-quantum key exchange"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'tlsmlkem=0'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'tlsmlkem=0'
+          filePattern: "*.yaml"
+      - builtin.filecontent:
+          pattern: 'tlsmlkem=0'
+          filePattern: "*.yml"
+      - builtin.filecontent:
+          pattern: 'tlsmlkem=0'
+          filePattern: "Dockerfile*"
+      - builtin.filecontent:
+          pattern: 'tlsmlkem=0'
+          filePattern: "*.env"
+  message: |
+    PQC Disabled. GODEBUG=tlsmlkem=0 disables post-quantum key exchange in Go 1.24+.
+
+    This setting:
+    - Removes X25519MLKEM768 from default CurvePreferences
+    - Leaves TLS vulnerable to "harvest now, decrypt later" attacks
+    - Blocks crypto agility for PQC migration
+
+    Action: Remove tlsmlkem=0 from GODEBUG settings.
+    If there are compatibility issues with specific endpoints, address them
+    at the connection level rather than globally disabling PQC.
+  tag:
+    - "PQC=Disabled"
+    - "GODEBUG=tlsmlkem"
+    - "FIPS-140=Unacceptable"
+
+- ruleID: fips-go-pqc-exp-00201
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "Requires Analysis: Legacy GODEBUG tlskyber setting detected"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'tlskyber='
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'tlskyber='
+          filePattern: "*.yaml"
+      - builtin.filecontent:
+          pattern: 'tlskyber='
+          filePattern: "*.yml"
+      - builtin.filecontent:
+          pattern: 'tlskyber='
+          filePattern: "Dockerfile*"
+  message: |
+    Legacy PQC Setting. GODEBUG=tlskyber was used in Go 1.23 for the experimental
+    X25519Kyber768Draft00 key exchange.
+
+    Go 1.24 removed this setting and replaced it with:
+    - GODEBUG=tlsmlkem=0 (to disable)
+    - X25519MLKEM768 (standardized algorithm)
+
+    Action:
+    - If Go 1.24+: Remove tlskyber setting (no longer recognized)
+    - If Go 1.23: Plan upgrade to Go 1.24 for standardized PQC
+    - Update to use tlsmlkem if GODEBUG control is needed
+  tag:
+    - "PQC=Legacy-Setting"
+    - "GODEBUG=tlskyber"
+
+- ruleID: fips-go-pqc-exp-00300
+  labels:
+    - "konveyor.io/target=go"
+  effort: 1
+  category: potential
+  description: "PQC Inventory: FIPS 140-3 mode enabled"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'fips140=on'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'fips140=on'
+          filePattern: "*.yaml"
+      - builtin.filecontent:
+          pattern: 'fips140=on'
+          filePattern: "*.yml"
+      - builtin.filecontent:
+          pattern: 'fips140=on'
+          filePattern: "Dockerfile*"
+      - builtin.filecontent:
+          pattern: 'fips140=only'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'fips140=only'
+          filePattern: "Dockerfile*"
+  message: |
+    FIPS 140-3 Mode Detected. GODEBUG=fips140=on or fips140=only enables
+    Go's native FIPS 140-3 cryptographic module (Go 1.24+).
+
+    Settings:
+    - fips140=on: Enables FIPS 140-3 compliant crypto module
+    - fips140=only: Strict mode, panics on non-FIPS algorithms
+
+    Go 1.24 FIPS Module Status:
+    - Pure Go implementation (no cgo/OpenSSL dependency)
+    - CAVP Certificate A6650
+    - CMVP validation in "Review Pending" status
+
+    Note: This supersedes GOFIPS=1 and GOEXPERIMENT=boringcrypto.
+  links:
+    - title: "Go FIPS 140-3 Compliance"
+      url: "https://go.dev/doc/security/fips140"
+  tag:
+    - "FIPS-140=Enabled"
+    - "GODEBUG=fips140"
