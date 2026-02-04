@@ -147,7 +147,7 @@
     - title: "Go crypto/mlkem Documentation"
       url: "https://pkg.go.dev/crypto/mlkem"
     - title: "NIST FIPS 203 (ML-KEM)"
-      url: "https://csrc.nist.gov/publications/detail/fips/203/final"
+      url: "https://csrc.nist.gov/pubs/fips/203/final"
   tag:
     - "PQC=Native"
     - "Crypto=ML-KEM"

@@ -19,13 +19,10 @@
           pattern: 'jwt\.SigningMethodRS'
           filePattern: "*.go"
       - builtin.filecontent:
-          pattern: '"RS256"'
+          pattern: 'GetSigningMethod\s*\(\s*"RS(?:256|384|512)"'
           filePattern: "*.go"
       - builtin.filecontent:
-          pattern: '"RS384"'
-          filePattern: "*.go"
-      - builtin.filecontent:
-          pattern: '"RS512"'
+          pattern: 'alg.*=.*"RS(?:256|384|512)"'
           filePattern: "*.go"
   message: |
     PQC Migration Inventory: JWT with RSA signatures detected.
@@ -74,13 +71,10 @@
           pattern: 'jwt\.SigningMethodPS'
           filePattern: "*.go"
       - builtin.filecontent:
-          pattern: '"PS256"'
+          pattern: 'GetSigningMethod\s*\(\s*"PS(?:256|384|512)"'
           filePattern: "*.go"
       - builtin.filecontent:
-          pattern: '"PS384"'
-          filePattern: "*.go"
-      - builtin.filecontent:
-          pattern: '"PS512"'
+          pattern: 'alg.*=.*"PS(?:256|384|512)"'
           filePattern: "*.go"
   message: |
     PQC Migration Inventory: JWT with RSA-PSS signatures detected.
@@ -126,13 +120,10 @@
           pattern: 'jwt\.SigningMethodES'
           filePattern: "*.go"
       - builtin.filecontent:
-          pattern: '"ES256"'
+          pattern: 'GetSigningMethod\s*\(\s*"ES(?:256|384|512)"'
           filePattern: "*.go"
       - builtin.filecontent:
-          pattern: '"ES384"'
-          filePattern: "*.go"
-      - builtin.filecontent:
-          pattern: '"ES512"'
+          pattern: 'alg.*=.*"ES(?:256|384|512)"'
           filePattern: "*.go"
   message: |
     PQC Migration Inventory: JWT with ECDSA signatures detected.
@@ -172,7 +163,10 @@
           pattern: 'jwt\.SigningMethodEdDSA'
           filePattern: "*.go"
       - builtin.filecontent:
-          pattern: '"EdDSA"'
+          pattern: 'GetSigningMethod\s*\(\s*"EdDSA"'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'alg.*=.*"EdDSA"'
           filePattern: "*.go"
   message: |
     PQC Migration Inventory: JWT with EdDSA signatures detected.
@@ -217,13 +211,10 @@
           pattern: 'jwt\.SigningMethodHS'
           filePattern: "*.go"
       - builtin.filecontent:
-          pattern: '"HS256"'
+          pattern: 'GetSigningMethod\s*\(\s*"HS(?:256|384|512)"'
           filePattern: "*.go"
       - builtin.filecontent:
-          pattern: '"HS384"'
-          filePattern: "*.go"
-      - builtin.filecontent:
-          pattern: '"HS512"'
+          pattern: 'alg.*=.*"HS(?:256|384|512)"'
           filePattern: "*.go"
   message: |
     PQC Inventory: JWT with HMAC signatures detected.
@@ -259,20 +250,24 @@
   description: "PQC Inventory: OAuth/OIDC token handling detected"
   when:
     or:
+      - go.referenced:
+          pattern: "golang.org/x/oauth2"
+      - go.referenced:
+          pattern: "github.com/coreos/go-oidc"
       - builtin.filecontent:
-          pattern: 'oauth2\.'
+          pattern: 'oauth2\.Config'
           filePattern: "*.go"
       - builtin.filecontent:
-          pattern: 'oidc\.'
+          pattern: 'oauth2\.Token'
           filePattern: "*.go"
       - builtin.filecontent:
-          pattern: 'id_token'
+          pattern: 'oidc\.Provider'
           filePattern: "*.go"
       - builtin.filecontent:
-          pattern: 'access_token'
+          pattern: 'oidc\.IDToken'
           filePattern: "*.go"
       - builtin.filecontent:
-          pattern: 'refresh_token'
+          pattern: 'oidc\.Verifier'
           filePattern: "*.go"
   message: |
     PQC Migration Inventory: OAuth/OIDC token handling detected.

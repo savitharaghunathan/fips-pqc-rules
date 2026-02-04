@@ -84,43 +84,47 @@
     - "konveyor.io/target=go"
   effort: 5
   category: mandatory
-  description: "Unacceptable: Certificate validation override breaks trust chain"
+  description: "Unacceptable: Custom certificate verification overrides default trust chain"
   when:
     or:
+      - builtin.filecontent:
+          pattern: 'VerifyPeerCertificate\s*:\s*func'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'VerifyConnection\s*:\s*func'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.VerifyPeerCertificate\s*=\s*func'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.VerifyConnection\s*=\s*func'
+          filePattern: "*.go"
       - builtin.filecontent:
           pattern: '\.VerifyPeerCertificate\s*=\s*nil'
           filePattern: "*.go"
       - builtin.filecontent:
-          pattern: '\.VerifyConnection\s*=\s*func.*\{\s*return\s+nil\s*\}'
-          filePattern: "*.go"
-      - builtin.filecontent:
-          pattern: '\.RootCAs\s*=\s*nil'
-          filePattern: "*.go"
-      - builtin.filecontent:
-          pattern: '\.ClientCAs\s*=\s*nil'
-          filePattern: "*.go"
-      - builtin.filecontent:
-          pattern: '\.CABundle\s*=\s*nil'
-          filePattern: "*.go"
-      - builtin.filecontent:
-          pattern: 'ClientConfig\.CABundle\s*=\s*nil'
+          pattern: '\.VerifyConnection\s*=\s*nil'
           filePattern: "*.go"
   message: |
-    Critical Security Vulnerability. Certificate validation override breaks the trust chain
-    and enables man-in-the-middle attacks.
+    Security Review Required. Custom certificate verification function detected.
+    This overrides Go's default trust chain validation.
 
-    Detected patterns include:
-    - VerifyPeerCertificate = nil
-    - VerifyConnection returning nil
-    - RootCAs = nil
-    - ClientCAs = nil
-    - CABundle = nil
+    Detected patterns:
+    - VerifyPeerCertificate: func(...) - custom peer certificate verification
+    - VerifyConnection: func(...) - custom connection state verification
+    - VerifyPeerCertificate = nil - disables peer certificate callback
+    - VerifyConnection = nil - disables connection verification callback
 
-    Action: Use proper certificate management and trust the cluster CA bundle.
-    Never disable certificate validation in production.
+    Custom verification functions can introduce security vulnerabilities if they:
+    - Always return nil (bypasses all validation)
+    - Have incomplete validation logic
+    - Skip certain certificate checks
+
+    Action: Review the custom verification function to ensure it properly validates
+    certificates. If not needed, remove it to use Go's secure defaults.
   tag:
     - "FIPS-140=Unacceptable"
-    - "TLS=Trust-Chain-Bypass"
+    - "TLS=Verification-Bypass"
     - "CWE=CWE-295"
 
 - ruleID: fips-go-tls-00104
@@ -196,35 +200,48 @@
   labels:
     - "konveyor.io/target=go"
   effort: 4
-  category: mandatory
-  description: "Unacceptable: Service mesh TLS bypass detected"
+  category: potential
+  description: "Requires Analysis: Plain HTTP communication detected"
   when:
     or:
+      # Detect HTTP URLs with variable hostnames (likely service-to-service)
       - builtin.filecontent:
-          pattern: '"http://"\s*\+\s*\w+\s*\+\s*":"'
+          pattern: '"http://"\s*\+\s*\w+'
+          filePattern: "*.go"
+      # Detect HTTP client calls with hardcoded URLs
+      - builtin.filecontent:
+          pattern: 'http\.Get\s*\(\s*"http://\w'
           filePattern: "*.go"
       - builtin.filecontent:
-          pattern: 'http\.Get\s*\(\s*"http://"'
+          pattern: 'http\.Post\s*\(\s*"http://\w'
           filePattern: "*.go"
       - builtin.filecontent:
-          pattern: 'http\.Post\s*\(\s*"http://"'
+          pattern: 'http\.NewRequest\s*\([^,]+,\s*"http://\w'
           filePattern: "*.go"
   message: |
-    Service Mesh Bypass. Direct HTTP (non-TLS) communication bypasses service mesh
-    mTLS protection and security observability.
+    Plain HTTP Communication Detected. Review if this bypasses service mesh security.
 
-    In a service mesh environment, all service-to-service communication should
+    NOTE: This rule may flag localhost connections. Manual review required.
+
+    In a service mesh environment, service-to-service communication should
     go through the mesh to benefit from:
     - Mutual TLS (mTLS) encryption
     - Identity-based access control
     - Traffic observability and tracing
 
-    Action: Use service mesh routing. Let the sidecar proxy handle TLS.
-    Use service DNS names instead of direct IP addresses.
+    Acceptable uses of plain HTTP:
+    - localhost/127.0.0.1 connections (loopback)
+    - Health check endpoints on localhost
+    - Sidecar proxy communication (localhost:port)
+    - Test code and fixtures
+
+    Action: If this is service-to-service communication over a network,
+    use HTTPS or rely on service mesh mTLS. Review and document if plain
+    HTTP is intentional for a valid use case.
   tag:
-    - "FIPS-140=Unacceptable"
-    - "TLS=Mesh-Bypass"
-    - "CWE=CWE-295"
+    - "FIPS-140=Requires-Analysis"
+    - "TLS=Plain-HTTP"
+    - "CWE=CWE-319"
 
 - ruleID: fips-go-tls-00107
   labels:

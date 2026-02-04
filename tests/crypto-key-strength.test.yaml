@@ -1,0 +1,48 @@
+rulesPath: ../crypto-key-strength.yaml
+providers:
+- name: builtin
+  dataPath: ./data/testdata
+- name: go
+  dataPath: ./data/testdata
+tests:
+- ruleID: fips-go-keysize-00100
+  testCases:
+  - name: tc-weak-rsa-512
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "Weak RSA Key Size|less than 2048 bits"
+
+- ruleID: fips-go-keysize-00101
+  testCases:
+  - name: tc-rsa-2048
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "RSA 2048-bit|minimum FIPS"
+
+- ruleID: fips-go-keysize-00102
+  testCases:
+  - name: tc-rsa-3072-4096
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "Strong RSA Key Size|3072-bit|4096-bit"
+
+- ruleID: fips-go-keysize-00300
+  testCases:
+  - name: tc-ecdsa-curves
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "NIST Elliptic Curve|P-256|P-384|P-521"
+
+- ruleID: fips-go-keysize-00400
+  testCases:
+  - name: tc-dsa-params
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "Diffie-Hellman|DSA Parameter"
+
+- ruleID: fips-go-keysize-00500
+  testCases:
+  - name: tc-pbkdf2-usage
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "PBKDF2 Usage|iteration count"

@@ -318,6 +318,54 @@
   tag:
     - "FIPS-140=Unacceptable"
 
+- ruleID: fips-go-crypto-00602
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "x/crypto/hkdf bypasses FIPS module - evaluate for FIPS 140 compliance"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/hkdf"
+  message: |
+    The golang.org/x/crypto/hkdf package implements HKDF (HMAC-based Key Derivation Function),
+    which is FIPS-approved (SP 800-56C). However, this x/crypto implementation does not
+    integrate with FIPS-validated cryptographic modules.
+
+    For FIPS 140 compliance with Go 1.24+, use crypto/hkdf from the standard library
+    with GOFIPS=1 or GODEBUG=fips140=on enabled.
+  links:
+    - title: "NIST SP 800-56C (Key Derivation)"
+      url: "https://csrc.nist.gov/publications/detail/sp/800-56c/rev-2/final"
+    - title: "Go FIPS 140 Documentation"
+      url: "https://go.dev/doc/security/fips140"
+  tag:
+    - "FIPS-140=Acceptable-Evaluate"
+
+- ruleID: fips-go-crypto-00603
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "x/crypto/sha3 bypasses FIPS module - evaluate for FIPS 140 compliance"
+  when:
+    go.referenced:
+      pattern: "golang.org/x/crypto/sha3"
+  message: |
+    The golang.org/x/crypto/sha3 package implements SHA-3 hash functions, which are
+    FIPS-approved (FIPS 202). However, this x/crypto implementation does not integrate
+    with FIPS-validated cryptographic modules.
+
+    For FIPS 140 compliance with Go 1.24+, use crypto/sha3 from the standard library
+    with GOFIPS=1 or GODEBUG=fips140=on enabled.
+  links:
+    - title: "FIPS 202 (SHA-3 Standard)"
+      url: "https://csrc.nist.gov/publications/detail/fips/202/final"
+    - title: "Go FIPS 140 Documentation"
+      url: "https://go.dev/doc/security/fips140"
+  tag:
+    - "FIPS-140=Acceptable-Evaluate"
+
 - ruleID: fips-go-crypto-00700
   labels:
     - "konveyor.io/target=go"

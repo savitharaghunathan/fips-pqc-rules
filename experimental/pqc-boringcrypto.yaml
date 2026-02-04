@@ -36,7 +36,7 @@
     Migration Path (Go 1.24+):
     - Use GODEBUG=fips140=on for native FIPS mode
     - Pure Go implementation, no cgo dependency
-    - FIPS 140-3 compliant (CMVP validation pending)
+    - FIPS 140-3 module has CAVP certificate A6650, CMVP validation in process
 
     Action:
     1. Plan migration to Go 1.24+ native FIPS mode

@@ -7,8 +7,8 @@
   when:
     go.dependency:
       name: "go"
-      lowerbound: "1.21"
-      upperbound: "1.24"
+      lowerbound: "1.18"
+      upperbound: "1.23.99"
   message: |
     Go Version Compatibility. This Go version does not include native post-quantum
     cryptography (PQC) algorithm support.

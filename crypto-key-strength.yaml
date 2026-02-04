@@ -99,42 +99,6 @@
     - "Crypto=RSA-Strong"
     - "PQC=Migration-Required"
 
-- ruleID: fips-go-keysize-00200
-  labels:
-    - "konveyor.io/target=go"
-  effort: 2
-  category: potential
-  description: "Requires Analysis: AES key size detection"
-  when:
-    or:
-      - builtin.filecontent:
-          pattern: 'make\s*\(\s*\[\]byte\s*,\s*16\s*\)[^)]*aes\.NewCipher'
-          filePattern: "*.go"
-      - builtin.filecontent:
-          pattern: 'make\s*\(\s*\[\]byte\s*,\s*24\s*\)[^)]*aes\.NewCipher'
-          filePattern: "*.go"
-      - builtin.filecontent:
-          pattern: 'make\s*\(\s*\[\]byte\s*,\s*32\s*\)[^)]*aes\.NewCipher'
-          filePattern: "*.go"
-  message: |
-    AES Key Size Detection. AES supports 128, 192, and 256-bit keys.
-
-    All AES key sizes are FIPS 140 approved:
-    - AES-128 (16 bytes): 128-bit security, fastest
-    - AES-192 (24 bytes): 192-bit security
-    - AES-256 (32 bytes): 256-bit security, recommended for high-security
-
-    PQC Consideration:
-    - AES-128 provides 64-bit security against Grover's algorithm
-    - AES-256 provides 128-bit security against quantum attacks
-    - For PQC readiness, prefer AES-256
-
-    Action: For quantum-resistant symmetric encryption, use AES-256.
-  tag:
-    - "FIPS-140=Acceptable-Evaluate"
-    - "Crypto=AES-Key-Size"
-    - "PQC=AES-256-Recommended"
-
 - ruleID: fips-go-keysize-00300
   labels:
     - "konveyor.io/target=go"
@@ -223,16 +187,17 @@
     PBKDF2 Usage Detected. Verify iteration count meets security requirements.
 
     NIST SP 800-132 recommendations:
-    - Minimum: 1,000 iterations (outdated)
-    - OWASP 2023: 600,000 iterations for SHA-256
-    - OWASP 2023: 210,000 iterations for SHA-512
+    - Minimum: 1,000 iterations (outdated, do not use)
+    - OWASP 2023: 600,000 iterations for PBKDF2-SHA-256
+    - OWASP 2023: 210,000 iterations for PBKDF2-SHA-512
 
     Higher iterations = more secure but slower:
     - Balance security vs. user experience
     - Consider hardware capabilities
     - Re-evaluate periodically as hardware improves
 
-    Action: Use at least 100,000 iterations for SHA-256.
+    Action: Use at least 600,000 iterations for PBKDF2-SHA-256 per OWASP 2023.
+    For PBKDF2-SHA-512, use at least 210,000 iterations.
     Consider Argon2id for new password hashing (if FIPS not required).
   links:
     - title: "OWASP Password Storage Cheat Sheet"

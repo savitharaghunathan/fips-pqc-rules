@@ -8,8 +8,6 @@
     or:
       - go.referenced:
           pattern: "github.com/cloudflare/circl"
-      - go.dependency:
-          name: "github.com/cloudflare/circl"
   message: |
     Third-Party PQC Library. Cloudflare CIRCL library detected.
 

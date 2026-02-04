@@ -1,0 +1,55 @@
+rulesPath: ../crypto-weak-algorithms.yaml
+providers:
+- name: builtin
+  dataPath: ./data/testdata
+- name: go
+  dataPath: ./data/testdata
+tests:
+- ruleID: fips-go-weak-00100
+  testCases:
+  - name: tc-des-import
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "DES.*cryptographically broken"
+
+- ruleID: fips-go-weak-00101
+  testCases:
+  - name: tc-3des-usage
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "Triple DES.*deprecated"
+
+- ruleID: fips-go-weak-00102
+  testCases:
+  - name: tc-rc4-usage
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "RC4.*cryptographically broken"
+
+- ruleID: fips-go-weak-00200
+  testCases:
+  - name: tc-md5-usage
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "MD5.*cryptographically broken"
+
+- ruleID: fips-go-weak-00201
+  testCases:
+  - name: tc-sha1-usage
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "SHA-1.*deprecated"
+
+- ruleID: fips-go-weak-00301
+  testCases:
+  - name: tc-cbc-usage
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "CBC.*does not provide authentication"
+
+- ruleID: fips-go-weak-00302
+  testCases:
+  - name: tc-stream-modes
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "Stream cipher modes.*do not provide authentication"

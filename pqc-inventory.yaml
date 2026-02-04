@@ -138,9 +138,6 @@
       - builtin.filecontent:
           pattern: 'ecdh\.X25519\s*\(\s*\)'
           filePattern: "*.go"
-      - builtin.filecontent:
-          pattern: '\.ECDH\s*\('
-          filePattern: "*.go"
   message: |
     PQC Migration Inventory: ECDH key exchange detected.
 
@@ -233,10 +230,13 @@
           pattern: 'elliptic\.P521\s*\(\s*\)'
           filePattern: "*.go"
       - builtin.filecontent:
-          pattern: '\.ScalarMult\s*\('
+          pattern: 'elliptic\.GenerateKey\s*\('
           filePattern: "*.go"
       - builtin.filecontent:
-          pattern: '\.ScalarBaseMult\s*\('
+          pattern: 'elliptic\.Marshal\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'elliptic\.Unmarshal\s*\('
           filePattern: "*.go"
   message: |
     PQC Migration Inventory: Elliptic curve operations detected.
@@ -276,7 +276,13 @@
           pattern: 'dh\.ComputeSecret\s*\('
           filePattern: "*.go"
       - builtin.filecontent:
-          pattern: 'big\.Int.*Exp\s*\('
+          pattern: 'dh\.GenerateParameters\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'dh\.PublicKey'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'dh\.PrivateKey'
           filePattern: "*.go"
   message: |
     PQC Migration Inventory: Diffie-Hellman key exchange detected.
@@ -367,19 +373,23 @@
     PQC Inventory: Hash function usage detected.
 
     Hash functions are affected by Grover's algorithm, which provides
-    quadratic speedup for collision/preimage attacks.
+    quadratic speedup for preimage attacks (but limited impact on collisions).
 
     Quantum Security Levels:
-    - SHA-256: 128-bit classical → 128-bit quantum (for collision)
-    - SHA-512: 256-bit classical → 256-bit quantum (for collision)
-    - SHA-3: Designed with quantum resistance in mind
+    - SHA-256:
+      - Preimage resistance: 256-bit classical → 128-bit quantum (Grover's)
+      - Collision resistance: 128-bit classical → ~128-bit quantum (limited speedup)
+    - SHA-512:
+      - Preimage resistance: 512-bit classical → 256-bit quantum
+      - Collision resistance: 256-bit classical → ~256-bit quantum
+    - SHA-3: Designed with quantum resistance in mind, similar security profile
 
     Current FIPS Status: APPROVED
     PQC Status: ACCEPTABLE (SHA-256+ provides adequate quantum security)
 
     Recommendations:
-    - SHA-256 remains secure for most applications
-    - SHA-512 provides extra margin
+    - SHA-256 remains secure for most applications (128-bit quantum collision resistance)
+    - SHA-512 provides extra margin for preimage resistance
     - SHA-3 is preferred for new high-security applications
   tag:
     - "PQC=Acceptable"

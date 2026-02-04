@@ -1,0 +1,42 @@
+rulesPath: ../crypto-operational.yaml
+providers:
+- name: builtin
+  dataPath: ./data/testdata
+- name: go
+  dataPath: ./data/testdata
+tests:
+- ruleID: fips-go-ops-00100
+  testCases:
+  - name: tc-hardcoded-key
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "Hardcoded cryptographic key"
+
+- ruleID: fips-go-ops-00101
+  testCases:
+  - name: tc-hardcoded-iv
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "Hardcoded initialization vector|Static IVs"
+
+- ruleID: fips-go-ops-00201
+  testCases:
+  - name: tc-crypto-rand
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "Cryptographic Random Usage|crypto/rand"
+
+- ruleID: fips-go-ops-00300
+  testCases:
+  - name: tc-static-salt
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "Static salt|password hashing"
+
+- ruleID: fips-go-ops-00400
+  testCases:
+  - name: tc-gcm-nonce
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "GCM Nonce|unique nonces"
+

@@ -1,0 +1,90 @@
+rulesPath: ../tls-rules.yaml
+providers:
+- name: builtin
+  dataPath: ./data/testdata
+- name: go
+  dataPath: ./data/testdata
+tests:
+- ruleID: fips-go-tls-00100
+  testCases:
+  - name: tc-insecure-skip-verify
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "InsecureSkipVerify.*disables certificate validation"
+
+- ruleID: fips-go-tls-00101
+  testCases:
+  - name: tc-max-version-blocking
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "MaxVersion blocks TLS 1.3|Post-Quantum Cryptography"
+
+- ruleID: fips-go-tls-00102
+  testCases:
+  - name: tc-hardcoded-ciphersuites
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "Hardcoded cipher suites|algorithm rotation"
+
+- ruleID: fips-go-tls-00103
+  testCases:
+  - name: tc-cert-validation-override
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "Certificate validation override|trust chain"
+
+- ruleID: fips-go-tls-00104
+  testCases:
+  - name: tc-grpc-insecure
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "gRPC.*Insecure|insecure.NewCredentials"
+
+- ruleID: fips-go-tls-00106
+  testCases:
+  - name: tc-plain-http
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "Plain HTTP|service mesh"
+
+- ruleID: fips-go-tls-00107
+  testCases:
+  - name: tc-database-tls-disabled
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "Database TLS Disabled|sslmode=disable"
+
+- ruleID: fips-go-tls-00108
+  testCases:
+  - name: tc-empty-servername
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "Hostname Verification Disabled|ServerName.*empty"
+
+- ruleID: fips-go-tls-00200
+  testCases:
+  - name: tc-manual-tls-config
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "Manual.*tls.Config"
+
+- ruleID: fips-go-tls-00201
+  testCases:
+  - name: tc-min-version-hardcoded
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "MinVersion|Legacy Lock"
+
+- ruleID: fips-go-tls-00202
+  testCases:
+  - name: tc-http-client-tls
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "Custom HTTP Client TLS|TLSClientConfig"
+
+- ruleID: fips-go-tls-00203
+  testCases:
+  - name: tc-http-server-tls
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "Custom HTTP Server TLS"
