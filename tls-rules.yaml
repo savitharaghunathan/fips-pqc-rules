@@ -99,12 +99,6 @@
       - builtin.filecontent:
           pattern: '\.VerifyConnection\s*=\s*func'
           filePattern: "*.go"
-      - builtin.filecontent:
-          pattern: '\.VerifyPeerCertificate\s*=\s*nil'
-          filePattern: "*.go"
-      - builtin.filecontent:
-          pattern: '\.VerifyConnection\s*=\s*nil'
-          filePattern: "*.go"
   message: |
     Security Review Required. Custom certificate verification function detected.
     This overrides Go's default trust chain validation.
@@ -112,8 +106,6 @@
     Detected patterns:
     - VerifyPeerCertificate: func(...) - custom peer certificate verification
     - VerifyConnection: func(...) - custom connection state verification
-    - VerifyPeerCertificate = nil - disables peer certificate callback
-    - VerifyConnection = nil - disables connection verification callback
 
     Custom verification functions can introduce security vulnerabilities if they:
     - Always return nil (bypasses all validation)
@@ -290,7 +282,7 @@
   tag:
     - "FIPS-140=Unacceptable"
     - "TLS=Database-Insecure"
-    - "CWE=CWE-295"
+    - "CWE=CWE-319"
 
 - ruleID: fips-go-tls-00108
   labels:

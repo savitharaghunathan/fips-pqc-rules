@@ -2,8 +2,8 @@
   labels:
     - "konveyor.io/target=go"
   effort: 2
-  category: mandatory
-  description: "Unacceptable: GODEBUG disables post-quantum key exchange"
+  category: potential
+  description: "PQC Blocking: GODEBUG disables post-quantum key exchange"
   when:
     or:
       - builtin.filecontent:
@@ -35,7 +35,6 @@
   tag:
     - "PQC=Disabled"
     - "GODEBUG=tlsmlkem"
-    - "FIPS-140=Unacceptable"
 
 - ruleID: fips-go-pqc-exp-00201
   labels:

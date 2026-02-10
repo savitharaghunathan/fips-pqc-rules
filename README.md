@@ -33,14 +33,14 @@ kantra analyze \
 
 ## Rule Summary
 
-**111 total rules** across 15 YAML files
+**112 total rules** across 15 YAML files
 
 | Category | Rules | Description |
 |----------|-------|-------------|
-| Core Rules | 85 | Production-ready compliance checks |
+| Core Rules | 86 | Production-ready compliance checks |
 | Experimental Rules | 26 | Emerging patterns and Go 1.24+ features |
 
-## Core Rules (85 rules)
+## Core Rules (86 rules)
 
 | File | Rules | Description | Focus |
 |------|-------|-------------|-------|
@@ -49,8 +49,8 @@ kantra analyze \
 | `pqc-inventory.yaml` | 9 | Quantum-vulnerable algorithm inventory | RSA, ECDSA, ECDH, DH, hash/AES quantum assessment |
 | `pqc-jwt-signatures.yaml` | 8 | JWT/JWS/OAuth/OIDC signature detection | RS256, PS256, ES256, EdDSA, HS256, X.509, SSH keys |
 | `crypto-weak-algorithms.yaml` | 7 | Weak/broken algorithm detection | DES, 3DES, RC4, MD5, SHA-1, CBC/CFB modes |
-| `crypto-key-strength.yaml` | 6 | Key size and parameter validation | RSA < 2048, ECC curves, DH parameters, PBKDF2 iterations |
-| `crypto-operational.yaml` | 6 | Operational security patterns | Hardcoded keys/IVs, math/rand misuse, static salts, AEAD nonces |
+| `crypto-key-strength.yaml` | 7 | Key size and parameter validation | RSA < 2048, P-224 deprecated, ECC curves, DH parameters, PBKDF2 iterations |
+| `crypto-operational.yaml` | 6 | Operational security patterns | Hardcoded keys/IVs, math/rand and math/rand/v2 misuse, static salts, AEAD nonces |
 | `pqc-go-version.yaml` | 1 | Go version PQC readiness | Go 1.24+ required for native ML-KEM support |
 
 ## Experimental Rules (26 rules)
@@ -84,7 +84,8 @@ Located in the `experimental/` directory for emerging patterns and Go 1.24+ feat
 | `FIPS-140=Unacceptable` | Algorithm is banned or not NIST-approved |
 | `FIPS-140=Acceptable-Evaluate` | May be acceptable, requires context review |
 | `FIPS-140=Requires-Analysis` | High-level protocol, algorithm usage varies |
-| `FIPS-140=Deprecated` | Being phased out (e.g., BoringCrypto) |
+| `FIPS-140=Deprecated` | Being phased out (e.g., BoringCrypto, P-224) |
+| `FIPS-140=Acceptable` | FIPS approved and recommended (e.g., ML-KEM) |
 | `FIPS-140=Enabled` | FIPS mode is active |
 | `FIPS-140=Not-Approved` | Algorithm secure but not FIPS validated |
 
@@ -108,20 +109,19 @@ Located in the `experimental/` directory for emerging patterns and Go 1.24+ feat
 
 Rules include relevant [Common Weakness Enumeration](https://cwe.mitre.org/) identifiers:
 
-| CWE | Description |
-|-----|-------------|
-| `CWE-295` | Improper Certificate Validation |
-| `CWE-319` | Cleartext Transmission of Sensitive Information |
-| `CWE-323` | Reusing a Nonce, Key Pair in Encryption |
-| `CWE-326` | Inadequate Encryption Strength |
-| `CWE-327` | Use of Broken Crypto Algorithm |
-| `CWE-328` | Use of Weak Hash |
-| `CWE-329` | Not Using an Unpredictable IV with CBC Mode |
-| `CWE-330` | Use of Insufficiently Random Values |
-| `CWE-338` | Use of Cryptographically Weak PRNG |
-| `CWE-757` | Selection of Insecure Algorithm During Negotiation |
-| `CWE-760` | Use of a One-Way Hash with a Predictable Salt |
-| `CWE-798` | Hardcoded Credentials |
+| CWE | Description | Used For |
+|-----|-------------|----------|
+| `CWE-295` | Improper Certificate Validation | InsecureSkipVerify, custom cert verification, gRPC/K8s insecure, empty ServerName |
+| `CWE-319` | Cleartext Transmission of Sensitive Information | Plain HTTP, database TLS disabled |
+| `CWE-323` | Reusing a Nonce, Key Pair in Encryption | GCM/AEAD nonce reuse |
+| `CWE-326` | Inadequate Encryption Strength | Weak RSA keys, P-224 curve, TLS 1.0/1.1, RSA key exchange without PFS |
+| `CWE-327` | Use of Broken or Risky Cryptographic Algorithm | DES, 3DES, RC4, CBC/CFB/OFB/CTR unauthenticated modes, SSL 3.0 |
+| `CWE-328` | Use of Weak Hash | MD5, SHA-1 |
+| `CWE-330` | Use of Insufficiently Random Values | Hardcoded IVs/nonces, crypto/rand verification |
+| `CWE-338` | Use of Cryptographically Weak PRNG | math/rand, math/rand/v2 |
+| `CWE-757` | Selection of Less-Secure Algorithm During Negotiation | Hardcoded MaxVersion/MinVersion/CipherSuites, custom TLS configs |
+| `CWE-760` | Use of a One-Way Hash with a Predictable Salt | Static salts in PBKDF2/scrypt/Argon2 |
+| `CWE-798` | Use of Hard-coded Credentials | Hardcoded encryption keys |
 
 ## Detected Patterns
 
@@ -133,7 +133,7 @@ Rules include relevant [Common Weakness Enumeration](https://cwe.mitre.org/) ide
 | `salsa20` | Unacceptable | `crypto/aes` + GCM |
 | `curve25519` | Unacceptable | `crypto/ecdh` (P-256/P-384) |
 | `blake2b`, `blake2s` | Unacceptable | `crypto/sha256`, `crypto/sha512` |
-| `argon2`, `bcrypt` | Unacceptable | `x/crypto/pbkdf2` |
+| `argon2`, `bcrypt` | Unacceptable | `crypto/pbkdf2` (Go 1.24+), `x/crypto/pbkdf2` |
 | `blowfish`, `twofish`, `cast5` | Unacceptable | `crypto/aes` |
 | `tea`, `xtea` | Unacceptable | `crypto/aes` |
 | `md4`, `ripemd160` | Unacceptable | `crypto/sha256` |
@@ -145,7 +145,7 @@ Rules include relevant [Common Weakness Enumeration](https://cwe.mitre.org/) ide
 | `hkdf` (x/crypto) | Evaluate | `crypto/hkdf` (Go 1.24+) |
 | `sha3` (x/crypto) | Evaluate | `crypto/sha3` (Go 1.24+) |
 | `ed25519` (x/crypto) | Evaluate | `crypto/ed25519` |
-| `scrypt` | Evaluate | `x/crypto/pbkdf2` |
+| `scrypt` | Evaluate | `crypto/pbkdf2` (Go 1.24+), `x/crypto/pbkdf2` |
 | `xts` | Evaluate | FIPS validated XTS or AES-GCM |
 | `ssh` | Requires Analysis | Configure FIPS cipher suites |
 | `openpgp` | Requires Analysis | Review algorithm selection |
@@ -171,7 +171,7 @@ Rules include relevant [Common Weakness Enumeration](https://cwe.mitre.org/) ide
 | `rsa.GenerateKey(_, 512)` | Trivially broken | Minimum 2048 bits |
 | `rsa.GenerateKey(_, 1024)` | Deprecated since 2013 | Minimum 2048 bits |
 | `rsa.GenerateKey(_, 1536)` | Non-standard | Minimum 2048 bits |
-| `elliptic.P224()` | Below 128-bit security | Use P-256 or higher |
+| `elliptic.P224()` | Deprecated (SP 800-186), 112-bit security | Use P-256 or higher |
 | `pbkdf2.Key` | Check iterations | 600,000+ for SHA-256 |
 
 ### Operational Security Issues
@@ -181,7 +181,7 @@ Rules include relevant [Common Weakness Enumeration](https://cwe.mitre.org/) ide
 | `aes.NewCipher([]byte("..."))` | Hardcoded encryption key |
 | `cipher.NewCBCEncrypter(_, []byte("..."))` | Hardcoded IV/nonce |
 | `cipher.NewGCM` with static nonce | Nonce reuse vulnerability |
-| `math/rand` for crypto | Predictable randomness |
+| `math/rand`, `math/rand/v2` for crypto | Predictable randomness |
 | `pbkdf2.Key(_, []byte("..."))` | Static salt |
 
 ### TLS Configuration Issues
@@ -193,7 +193,7 @@ Rules include relevant [Common Weakness Enumeration](https://cwe.mitre.org/) ide
 | `MinVersion: tls.VersionTLS10` | Allows deprecated TLS | Protocol attacks |
 | `CipherSuites: [...]` | Hardcoded ciphers | Blocks rotation |
 | `CurvePreferences: [...]` | Hardcoded curves | Blocks PQC curves |
-| `VerifyPeerCertificate: func() { return nil }` | Bypasses validation | MITM attacks |
+| `VerifyPeerCertificate: func(...)` | Custom verification may bypass validation | MITM attacks |
 | `grpc.WithInsecure()` | No TLS | No encryption |
 | `sslmode=disable` | Database TLS disabled | Data exposure |
 | `.ServerName = ""` | Hostname bypass | Cert substitution |
@@ -225,9 +225,9 @@ These algorithms are currently FIPS-approved but require migration planning:
 
 | Algorithm | Quantum Security | Notes |
 |-----------|------------------|-------|
-| AES-256 | 128-bit post-quantum | Grover halves effective key size |
-| SHA-256 | ~128-bit collision resistance | Minimal quantum speedup for collisions |
-| SHA-512 | ~256-bit collision resistance | Extra margin for preimage |
+| AES-256 | 128-bit post-quantum | Grover's algorithm halves effective key size |
+| SHA-256 | ~85-bit quantum collision resistance | BHT algorithm provides cube-root speedup |
+| SHA-512 | ~170-bit quantum collision resistance | Extra margin for preimage and collision |
 | HMAC-SHA256+ | Quantum resistant | Symmetric, no Shor vulnerability |
 | ML-KEM (Kyber) | FIPS 203 standardized | Go 1.24+ crypto/mlkem |
 | X25519MLKEM768 | Hybrid classical+PQC | Go 1.24+ default in TLS |
@@ -332,6 +332,7 @@ tests/
 │   ├── pqc-inventory/           # PQC inventory test cases
 │   ├── pqc-jwt-signatures/      # JWT signature test cases
 │   ├── rules-xcrypto/           # x/crypto package test cases
+│   ├── rules-simple/            # Basic test Go module structure
 │   ├── tls-rules/               # TLS configuration test cases
 │   └── testdata/                # General test data
 ├── crypto-key-strength.test.yaml
@@ -371,6 +372,7 @@ fips-go-{category}-{number}
 - [SP 800-56A Rev 3](https://csrc.nist.gov/publications/detail/sp/800-56a/rev-3/final) - Key Establishment
 - [SP 800-56C Rev 2](https://csrc.nist.gov/publications/detail/sp/800-56c/rev-2/final) - Key Derivation
 - [SP 800-57 Part 1 Rev 5](https://csrc.nist.gov/publications/detail/sp/800-57-part-1/rev-5/final) - Key Management
+- [SP 800-186](https://csrc.nist.gov/publications/detail/sp/800-186/final) - Discrete Logarithm-Based Cryptography (curve deprecations)
 - [FIPS 202](https://csrc.nist.gov/publications/detail/fips/202/final) - SHA-3 Standard
 
 ### Post-Quantum Cryptography

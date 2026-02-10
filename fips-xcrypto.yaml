@@ -379,8 +379,12 @@
     Argon2 is a modern password hashing function but is not FIPS 140 approved.
     FIPS requires PBKDF2 for password-based key derivation.
 
-    Replace with: golang.org/x/crypto/pbkdf2 with SHA-256.
+    Replace with:
+    - Go 1.24+: crypto/pbkdf2 from the standard library (integrates with FIPS 140-3 module)
+    - Go < 1.24: golang.org/x/crypto/pbkdf2 with SHA-256
   links:
+    - title: "Go crypto/pbkdf2 Documentation (Go 1.24+)"
+      url: "https://pkg.go.dev/crypto/pbkdf2"
     - title: "Go x/crypto/pbkdf2 Documentation"
       url: "https://pkg.go.dev/golang.org/x/crypto/pbkdf2"
   tag:
@@ -399,8 +403,12 @@
     bcrypt is a widely-used password hashing function but is not FIPS 140 approved.
     FIPS requires PBKDF2 for password-based key derivation.
 
-    Replace with: golang.org/x/crypto/pbkdf2 with SHA-256.
+    Replace with:
+    - Go 1.24+: crypto/pbkdf2 from the standard library (integrates with FIPS 140-3 module)
+    - Go < 1.24: golang.org/x/crypto/pbkdf2 with SHA-256
   links:
+    - title: "Go crypto/pbkdf2 Documentation (Go 1.24+)"
+      url: "https://pkg.go.dev/crypto/pbkdf2"
     - title: "Go x/crypto/pbkdf2 Documentation"
       url: "https://pkg.go.dev/golang.org/x/crypto/pbkdf2"
   tag:
@@ -420,8 +428,11 @@
     "cleartext equivalent" and may be acceptable in FIPS environments depending on context.
 
     Evaluate your use case. If strict FIPS compliance is required, consider:
-    golang.org/x/crypto/pbkdf2 with SHA-256.
+    - Go 1.24+: crypto/pbkdf2 from the standard library (integrates with FIPS 140-3 module)
+    - Go < 1.24: golang.org/x/crypto/pbkdf2 with SHA-256
   links:
+    - title: "Go crypto/pbkdf2 Documentation (Go 1.24+)"
+      url: "https://pkg.go.dev/crypto/pbkdf2"
     - title: "Go x/crypto/pbkdf2 Documentation"
       url: "https://pkg.go.dev/golang.org/x/crypto/pbkdf2"
   tag:

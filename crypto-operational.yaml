@@ -81,7 +81,7 @@
   tag:
     - "FIPS-140=Unacceptable"
     - "Crypto=Static-IV"
-    - "CWE=CWE-329"
+    - "CWE=CWE-330"
 
 - ruleID: fips-go-ops-00200
   labels:
@@ -90,14 +90,18 @@
   category: potential
   description: "Requires Analysis: math/rand detected - review for cryptographic misuse"
   when:
-    go.referenced:
-      pattern: "math/rand"
+    or:
+      - go.referenced:
+          pattern: "math/rand"
+      - go.referenced:
+          pattern: "math/rand/v2"
   message: |
     math/rand Package Detected. Review usage context for security implications.
 
-    math/rand is NOT cryptographically secure:
+    math/rand (and math/rand/v2) are NOT cryptographically secure:
     - Output can be predicted if seed is known
     - Default seed is deterministic (time-based before Go 1.20)
+    - math/rand/v2 (Go 1.22+) has improved seeding but is still not crypto-safe
     - MUST NOT be used for security-sensitive purposes
 
     math/rand is UNACCEPTABLE for:

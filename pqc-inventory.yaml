@@ -378,18 +378,20 @@
     Quantum Security Levels:
     - SHA-256:
       - Preimage resistance: 256-bit classical → 128-bit quantum (Grover's)
-      - Collision resistance: 128-bit classical → ~128-bit quantum (limited speedup)
+      - Collision resistance: 128-bit classical → ~85-bit quantum (BHT algorithm)
     - SHA-512:
-      - Preimage resistance: 512-bit classical → 256-bit quantum
-      - Collision resistance: 256-bit classical → ~256-bit quantum
-    - SHA-3: Designed with quantum resistance in mind, similar security profile
+      - Preimage resistance: 512-bit classical → 256-bit quantum (Grover's)
+      - Collision resistance: 256-bit classical → ~170-bit quantum (BHT algorithm)
+    - SHA-3: Similar quantum security profile to SHA-2 of equivalent output size
+    Note: BHT (Brassard-Høyer-Tapp) provides cube-root speedup for collisions,
+    but requires substantial quantum memory. Practical impact is debated.
 
     Current FIPS Status: APPROVED
     PQC Status: ACCEPTABLE (SHA-256+ provides adequate quantum security)
 
     Recommendations:
-    - SHA-256 remains secure for most applications (128-bit quantum collision resistance)
-    - SHA-512 provides extra margin for preimage resistance
+    - SHA-256 remains secure for most applications (~85-bit quantum collision resistance)
+    - SHA-512 provides extra margin (~170-bit quantum collision resistance)
     - SHA-3 is preferred for new high-security applications
   tag:
     - "PQC=Acceptable"

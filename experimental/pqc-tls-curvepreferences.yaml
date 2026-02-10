@@ -2,8 +2,8 @@
   labels:
     - "konveyor.io/target=go"
   effort: 3
-  category: mandatory
-  description: "Unacceptable: CurvePreferences may block post-quantum key exchange"
+  category: potential
+  description: "PQC Blocking: CurvePreferences may block post-quantum key exchange"
   when:
     or:
       - builtin.filecontent:
@@ -40,7 +40,6 @@
   tag:
     - "PQC=Blocking"
     - "TLS=CurvePreferences"
-    - "FIPS-140=Unacceptable"
 
 - ruleID: fips-go-pqc-exp-00101
   labels:

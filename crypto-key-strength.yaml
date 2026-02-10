@@ -99,17 +99,48 @@
     - "Crypto=RSA-Strong"
     - "PQC=Migration-Required"
 
+- ruleID: fips-go-keysize-00299
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: mandatory
+  description: "Deprecated: P-224 curve provides insufficient security (112-bit)"
+  when:
+    builtin.filecontent:
+      pattern: 'elliptic\.P224\s*\(\s*\)'
+      filePattern: "*.go"
+  message: |
+    Deprecated Curve. P-224 is deprecated by NIST SP 800-186 (2023).
+
+    P-224 provides only 112-bit security, which is below NIST's 128-bit
+    minimum recommendation. NIST SP 800-186 lists P-224 as deprecated
+    for digital signatures.
+
+    FIPS Status: DEPRECATED (SP 800-186)
+
+    Action: Replace with P-256 (128-bit security) or P-384 (192-bit security):
+      key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+
+    PQC Consideration:
+    - All elliptic curves are vulnerable to quantum computers (Shor's algorithm)
+    - Plan migration to post-quantum algorithms
+  links:
+    - title: "NIST SP 800-186 - Discrete Logarithm-Based Crypto"
+      url: "https://csrc.nist.gov/publications/detail/sp/800-186/final"
+  tag:
+    - "FIPS-140=Deprecated"
+    - "Crypto=P224-Deprecated"
+    - "CWE=CWE-326"
+    - "PQC=Migration-Required"
+
 - ruleID: fips-go-keysize-00300
   labels:
     - "konveyor.io/target=go"
   effort: 2
   category: potential
-  description: "Requires Analysis: ECDSA/ECDH curve selection"
+  description: "Acceptable: ECDSA/ECDH NIST curve usage (P-256, P-384, P-521)"
   when:
     or:
-      - builtin.filecontent:
-          pattern: 'elliptic\.P224\s*\(\s*\)'
-          filePattern: "*.go"
       - builtin.filecontent:
           pattern: 'elliptic\.P256\s*\(\s*\)'
           filePattern: "*.go"
@@ -123,7 +154,6 @@
     NIST Elliptic Curve Usage. Detected usage of NIST-approved curves.
 
     FIPS 140 approved curves:
-    - P-224: 112-bit security (minimum, not recommended for new use)
     - P-256: 128-bit security (recommended for most uses)
     - P-384: 192-bit security (high security)
     - P-521: 256-bit security (highest security)
