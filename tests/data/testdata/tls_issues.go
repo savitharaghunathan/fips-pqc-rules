@@ -5,7 +5,9 @@ import (
 	"net/http"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
+	"k8s.io/client-go/rest"
 )
 
 // Test: fips-go-tls-00100 - InsecureSkipVerify
@@ -37,6 +39,7 @@ func maxVersionBlocking() {
 
 // Test: fips-go-tls-00102 - Hardcoded CipherSuites
 func hardcodedCipherSuites() {
+	// Struct literal initialization
 	config := &tls.Config{
 		CipherSuites: []uint16{
 			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
@@ -44,6 +47,16 @@ func hardcodedCipherSuites() {
 		},
 	}
 	_ = config
+
+	// Assignment form
+	config2 := &tls.Config{}
+	config2.CipherSuites = []uint16{tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256}
+	_ = config2
+
+	// Append form
+	config3 := &tls.Config{}
+	config3.CipherSuites = append(config3.CipherSuites, tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256)
+	_ = config3
 }
 
 // Test: fips-go-tls-00103 - Certificate validation override
@@ -78,6 +91,46 @@ func grpcInsecure() {
 	_ = creds
 }
 
+// Test: fips-go-tls-00109 - gRPC custom TLS credential override
+func grpcCustomTLS() {
+	// Custom TLS config passed to gRPC credentials
+	tlsConfig := &tls.Config{
+		MinVersion: tls.VersionTLS12,
+	}
+	creds := credentials.NewTLS(tlsConfig)
+	conn, _ := grpc.Dial("server:443",
+		grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+	_ = conn
+	_ = creds
+}
+
+// Test: fips-go-tls-00110 - Kubernetes client custom TLS override
+func k8sClientCustomTLS() {
+	// Custom TLS in rest.Config
+	config := &rest.Config{
+		TLSClientConfig: rest.TLSClientConfig{
+			CertFile: "/path/to/cert.pem",
+			KeyFile:  "/path/to/key.pem",
+		},
+	}
+	_ = config
+
+	// Assignment form
+	config2 := &rest.Config{}
+	config2.TLSClientConfig = rest.TLSClientConfig{
+		CAFile: "/path/to/ca.pem",
+	}
+	_ = config2
+
+	// CertData inline
+	config3 := &rest.Config{
+		TLSClientConfig: rest.TLSClientConfig{
+			CertData: []byte("cert-data"),
+		},
+	}
+	_ = config3
+}
+
 // Test: fips-go-tls-00106 - Plain HTTP (potential service mesh bypass)
 func plainHTTP() {
 	// Plain HTTP calls
@@ -107,6 +160,45 @@ func databaseTLSDisabled() {
 func emptyServerName() {
 	config := &tls.Config{}
 	config.ServerName = ""
+	_ = config
+}
+
+// Test: fips-go-tls-00205 - Hardcoded TLS 1.3
+func hardcodedTLS13() {
+	// Hardcoded MinVersion TLS 1.3
+	config := &tls.Config{
+		MinVersion: tls.VersionTLS13,
+	}
+	_ = config
+
+	// Hardcoded MaxVersion TLS 1.3
+	config2 := &tls.Config{}
+	config2.MaxVersion = tls.VersionTLS13
+	_ = config2
+}
+
+// Test: fips-go-tls-00206 - CurvePreferences blocks PQC
+func curvePreferencesBlockPQC() {
+	// Explicit CurvePreferences without PQC curves
+	config := &tls.Config{
+		CurvePreferences: []tls.CurveID{
+			tls.X25519,
+			tls.CurveP256,
+		},
+	}
+	_ = config
+
+	// Assignment form
+	config2 := &tls.Config{}
+	config2.CurvePreferences = []tls.CurveID{tls.CurveP256, tls.CurveP384}
+	_ = config2
+}
+
+// Test: fips-go-tls-00207 - X25519 without ML-KEM
+func x25519WithoutMLKEM() {
+	config := &tls.Config{
+		CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
+	}
 	_ = config
 }
 

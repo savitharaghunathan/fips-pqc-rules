@@ -63,9 +63,16 @@
   category: mandatory
   description: "Unacceptable: Hardcoded CipherSuites blocks algorithm rotation"
   when:
-    builtin.filecontent:
-      pattern: 'CipherSuites\s*:\s*\['
-      filePattern: "*.go"
+    or:
+      - builtin.filecontent:
+          pattern: 'CipherSuites\s*:\s*\['
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.CipherSuites\s*=\s*\[\]uint16\s*\{'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.CipherSuites\s*=\s*append\('
+          filePattern: "*.go"
   message: |
     Blocks Agility. Hardcoded cipher suites prevent the platform from
     rotating insecure algorithms when vulnerabilities are discovered.
@@ -155,6 +162,42 @@
     - "TLS=gRPC-Insecure"
     - "CWE=CWE-295"
 
+- ruleID: fips-go-tls-00109
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: potential
+  description: "Requires Analysis: gRPC custom TLS credential override may bypass platform profile"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'credentials\.NewTLS\s*\('
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'grpc\.WithTransportCredentials\s*\(\s*credentials\.NewTLS'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'grpc\.Creds\s*\(\s*credentials\.NewTLS'
+          filePattern: "*.go"
+  message: |
+    gRPC Custom TLS Credentials. Custom TLS configuration passed to gRPC
+    may override the platform TLS profile settings.
+
+    Detected patterns:
+    - credentials.NewTLS(&tls.Config{...}) with custom TLS config
+    - grpc.WithTransportCredentials with custom credentials
+
+    This may hardcode TLS versions, cipher suites, or curve preferences
+    that diverge from the centrally managed TLS profile.
+
+    Action: Ensure the tls.Config passed to credentials.NewTLS is built
+    from the API Server TLS profile rather than hardcoded values.
+    Use apiserver.ObserveTLSSecurityProfile or fetch the profile dynamically.
+  tag:
+    - "FIPS-140=Requires-Analysis"
+    - "TLS=gRPC-TLS-Override"
+    - "CWE=CWE-757"
+
 - ruleID: fips-go-tls-00105
   labels:
     - "konveyor.io/target=go"
@@ -172,6 +215,9 @@
       - builtin.filecontent:
           pattern: 'rest\.TLSClientConfig\s*\{[^}]*Insecure\s*:\s*true'
           filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'Insecure\s*:\s*true'
+          filePattern: "*.go"
   message: |
     Kubernetes Client Insecure. Setting Insecure: true in rest.TLSClientConfig
     bypasses cluster security policies and certificate validation.
@@ -187,6 +233,69 @@
     - "FIPS-140=Unacceptable"
     - "TLS=K8s-Client-Insecure"
     - "CWE=CWE-295"
+
+- ruleID: fips-go-tls-00110
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: potential
+  description: "Requires Analysis: Kubernetes client custom TLS override may bypass platform profile"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'rest\.Config\s*\{[^}]*TLSClientConfig'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.TLSClientConfig\s*=\s*rest\.TLSClientConfig\s*\{'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'rest\.TLSClientConfig\s*\{[^}]*CertFile'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'rest\.TLSClientConfig\s*\{[^}]*KeyFile'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'rest\.TLSClientConfig\s*\{[^}]*CAFile'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'rest\.TLSClientConfig\s*\{[^}]*CertData'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'TLSClientConfig\s*:\s*rest\.TLSClientConfig'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'CertFile\s*:'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'KeyFile\s*:'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'CAFile\s*:'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'CertData\s*:'
+          filePattern: "*.go"
+  message: |
+    Kubernetes Client TLS Override. Custom TLS configuration in rest.Config
+    may override platform TLS profile settings.
+
+    Detected patterns:
+    - rest.Config with custom TLSClientConfig
+    - Custom certificate/key file paths
+    - Inline certificate data
+
+    Even when not setting Insecure: true, custom TLS configurations can
+    hardcode TLS versions, cipher suites, or certificates that diverge
+    from the centrally managed TLS profile.
+
+    Action: Review the TLS configuration to ensure it inherits settings
+    from the API Server TLS profile. Use in-cluster configuration where
+    possible. If custom certs are required, ensure TLS version and cipher
+    settings still come from the platform profile.
+  tag:
+    - "FIPS-140=Requires-Analysis"
+    - "TLS=K8s-Client-TLS-Override"
+    - "CWE=CWE-757"
 
 - ruleID: fips-go-tls-00106
   labels:
@@ -367,6 +476,49 @@
     - "TLS=Version-Lock"
     - "CWE=CWE-757"
 
+- ruleID: fips-go-tls-00205
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "Requires Analysis: Hardcoded TLS 1.3 should be dynamically configured"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'MinVersion\s*:\s*tls\.VersionTLS13'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.MinVersion\s*=\s*tls\.VersionTLS13'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'MaxVersion\s*:\s*tls\.VersionTLS13'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.MaxVersion\s*=\s*tls\.VersionTLS13'
+          filePattern: "*.go"
+  message: |
+    Hardcoded TLS 1.3. While TLS 1.3 is currently the preferred version,
+    hardcoding it prevents the component from following the centrally
+    managed TLS profile.
+
+    Per OpenShift TLS Profile Compliance guidance:
+    "Hardcoding values like 'TLS 1.3' is not an acceptable fix. The component
+    must remain compliant as the central policy is updated over time without
+    requiring a code change."
+
+    Components must dynamically inherit TLS settings from the API Server,
+    Kubelet, or Ingress configuration rather than hardcoding any version.
+
+    Action: Remove hardcoded TLS version. Fetch TLS configuration from:
+    1. API Server configuration (default for most components)
+    2. Kubelet configuration (only if running on kubelet)
+    3. Ingress configuration (only if handling ingress traffic)
+    Use apiserver.ObserveTLSSecurityProfile or fetch the profile dynamically.
+  tag:
+    - "FIPS-140=Requires-Analysis"
+    - "TLS=Hardcoded-Version"
+    - "CWE=CWE-757"
+
 - ruleID: fips-go-tls-00202
   labels:
     - "konveyor.io/target=go"
@@ -383,6 +535,9 @@
           filePattern: "*.go"
       - builtin.filecontent:
           pattern: '\.TLSClientConfig\s*='
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'TLSClientConfig\s*:\s*&tls\.Config'
           filePattern: "*.go"
   message: |
     Custom HTTP Client TLS. HTTP clients with custom TLSClientConfig may override
@@ -414,6 +569,9 @@
           filePattern: "*.go"
       - builtin.filecontent:
           pattern: '\.TLSConfig\s*=\s*&tls\.Config'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'TLSConfig\s*:\s*\w'
           filePattern: "*.go"
   message: |
     Custom HTTP Server TLS. HTTP servers with custom TLSConfig may override
@@ -452,3 +610,84 @@
     - "FIPS-140=Requires-Analysis"
     - "TLS=Reflection-Bypass"
     - "CWE=CWE-295"
+
+- ruleID: fips-go-tls-00206
+  labels:
+    - "konveyor.io/target=go"
+  effort: 3
+  category: potential
+  description: "PQC Blocking: CurvePreferences may block post-quantum key exchange"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'CurvePreferences\s*:\s*\[\]tls\.CurveID\s*\{'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: '\.CurvePreferences\s*=\s*\[\]tls\.CurveID\s*\{'
+          filePattern: "*.go"
+  message: |
+    PQC Blocking Configuration. Explicit CurvePreferences may block post-quantum
+    key exchange in TLS connections.
+
+    In Go 1.24+, the default CurvePreferences includes X25519MLKEM768 (hybrid PQC).
+    When you explicitly set CurvePreferences, you override this default.
+
+    Problematic pattern:
+      tls.Config{
+          CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
+      }
+
+    This blocks:
+    - X25519MLKEM768 (Go 1.24+ hybrid PQC)
+    - Future post-quantum key exchange mechanisms
+
+    Per OpenShift TLS Profile Compliance guidance, CurvePreferences must be
+    fetched from the API Server configuration and applied dynamically.
+
+    Action: Either:
+    1. Remove CurvePreferences to use secure defaults (recommended)
+    2. Include tls.X25519MLKEM768 in the list (Go 1.24+)
+    3. Load curve preferences from platform TLS profile configuration
+  links:
+    - title: "Go crypto/tls Documentation"
+      url: "https://pkg.go.dev/crypto/tls"
+    - title: "OpenShift API - TLS Curve Preferences"
+      url: "https://github.com/openshift/api/pull/2583"
+  tag:
+    - "PQC=Blocking"
+    - "TLS=CurvePreferences"
+    - "CWE=CWE-757"
+
+- ruleID: fips-go-tls-00207
+  labels:
+    - "konveyor.io/target=go"
+  effort: 2
+  category: potential
+  description: "Requires Analysis: X25519 without ML-KEM may indicate missing PQC"
+  when:
+    or:
+      - builtin.filecontent:
+          pattern: 'tls\.X25519[^M]'
+          filePattern: "*.go"
+      - builtin.filecontent:
+          pattern: 'CurveID.*X25519[,\}]'
+          filePattern: "*.go"
+  message: |
+    X25519 Key Exchange Without PQC. Detected X25519 usage that may not include
+    the hybrid post-quantum variant.
+
+    Go 1.24+ provides:
+    - tls.X25519 (classical, quantum-vulnerable)
+    - tls.X25519MLKEM768 (hybrid, quantum-resistant)
+
+    If CurvePreferences explicitly lists X25519 without X25519MLKEM768,
+    post-quantum protection is not enabled.
+
+    Action: Review TLS configuration:
+    - For Go 1.24+: Ensure X25519MLKEM768 is included or use defaults
+    - For Go 1.23: X25519Kyber768Draft00 was experimental
+    - For older Go: Consider upgrading for PQC support
+    - Best: Load curve preferences from the platform TLS profile
+  tag:
+    - "PQC=Requires-Analysis"
+    - "TLS=X25519"

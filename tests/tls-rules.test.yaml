@@ -88,3 +88,38 @@ tests:
     hasIncidents:
       atLeast: 1
       messageMatches: "Custom HTTP Server TLS"
+
+- ruleID: fips-go-tls-00109
+  testCases:
+  - name: tc-grpc-custom-tls
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "gRPC Custom TLS Credentials|credentials.NewTLS"
+
+- ruleID: fips-go-tls-00110
+  testCases:
+  - name: tc-k8s-client-tls-override
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "Kubernetes Client TLS Override|rest.Config"
+
+- ruleID: fips-go-tls-00205
+  testCases:
+  - name: tc-hardcoded-tls13
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "Hardcoded TLS 1.3|dynamically configured"
+
+- ruleID: fips-go-tls-00206
+  testCases:
+  - name: tc-curve-preferences-block-pqc
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "CurvePreferences|post-quantum"
+
+- ruleID: fips-go-tls-00207
+  testCases:
+  - name: tc-x25519-without-mlkem
+    hasIncidents:
+      atLeast: 1
+      messageMatches: "X25519.*Without PQC|X25519MLKEM768"
