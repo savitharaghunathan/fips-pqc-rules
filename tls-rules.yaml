@@ -260,18 +260,6 @@
       - builtin.filecontent:
           pattern: 'TLSClientConfig\s*:\s*rest\.TLSClientConfig'
           filePattern: "*.go"
-      - builtin.filecontent:
-          pattern: 'CertFile\s*:'
-          filePattern: "*.go"
-      - builtin.filecontent:
-          pattern: 'KeyFile\s*:'
-          filePattern: "*.go"
-      - builtin.filecontent:
-          pattern: 'CAFile\s*:'
-          filePattern: "*.go"
-      - builtin.filecontent:
-          pattern: 'CertData\s*:'
-          filePattern: "*.go"
   message: |
     Kubernetes Client TLS Override. Custom TLS configuration in rest.Config
     may override platform TLS profile settings.

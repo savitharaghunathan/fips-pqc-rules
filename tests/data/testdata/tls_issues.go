@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"net/http"
+	"reflect"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -129,6 +130,30 @@ func k8sClientCustomTLS() {
 		},
 	}
 	_ = config3
+}
+
+// Test: fips-go-tls-00105 - Kubernetes client TLS insecure
+func k8sClientInsecure() {
+	// Insecure in struct literal
+	config := &rest.Config{
+		TLSClientConfig: rest.TLSClientConfig{
+			Insecure: true,
+		},
+	}
+	_ = config
+
+	// Field assignment
+	config2 := &rest.Config{}
+	config2.TLSClientConfig.Insecure = true
+	_ = config2
+}
+
+// Test: fips-go-tls-00204 - Reflection-based InsecureSkipVerify
+func reflectionInsecureSkipVerify() {
+	config := &tls.Config{}
+	v := reflect.ValueOf(config).Elem()
+	field := v.FieldByName("InsecureSkipVerify")
+	field.SetBool(true)
 }
 
 // Test: fips-go-tls-00106 - Plain HTTP (potential service mesh bypass)
