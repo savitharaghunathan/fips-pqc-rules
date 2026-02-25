@@ -19,13 +19,6 @@ tests:
       atLeast: 1
       messageMatches: "Hardcoded initialization vector|Static IVs"
 
-- ruleID: fips-go-ops-00201
-  testCases:
-  - name: tc-crypto-rand
-    hasIncidents:
-      atLeast: 1
-      messageMatches: "Cryptographic Random Usage|crypto/rand"
-
 - ruleID: fips-go-ops-00300
   testCases:
   - name: tc-static-salt

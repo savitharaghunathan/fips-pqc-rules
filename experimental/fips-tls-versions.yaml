@@ -84,8 +84,8 @@
   labels:
     - "konveyor.io/target=go"
   effort: 2
-  category: potential
-  description: "Requires Analysis: SSL 3.0 reference detected"
+  category: mandatory
+  description: "Unacceptable: SSL 3.0 reference detected - cryptographically broken"
   when:
     or:
       - builtin.filecontent:

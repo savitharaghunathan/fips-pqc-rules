@@ -1,7 +1,7 @@
 - ruleID: fips-go-pqc-00100
   labels:
     - "konveyor.io/target=go"
-  effort: 1
+  effort: 3
   category: potential
   description: "PQC Inventory: RSA cryptography usage detected"
   when:
@@ -67,7 +67,7 @@
 - ruleID: fips-go-pqc-00101
   labels:
     - "konveyor.io/target=go"
-  effort: 1
+  effort: 3
   category: potential
   description: "PQC Inventory: ECDSA signature usage detected"
   when:
@@ -119,7 +119,7 @@
 - ruleID: fips-go-pqc-00102
   labels:
     - "konveyor.io/target=go"
-  effort: 1
+  effort: 2
   category: potential
   description: "PQC Inventory: ECDH key exchange usage detected"
   when:
@@ -167,7 +167,7 @@
 - ruleID: fips-go-pqc-00103
   labels:
     - "konveyor.io/target=go"
-  effort: 1
+  effort: 2
   category: potential
   description: "PQC Inventory: Ed25519 signature usage detected"
   when:
@@ -210,7 +210,7 @@
 - ruleID: fips-go-pqc-00104
   labels:
     - "konveyor.io/target=go"
-  effort: 1
+  effort: 2
   category: potential
   description: "PQC Inventory: Elliptic curve operations detected"
   when:
@@ -264,7 +264,7 @@
 - ruleID: fips-go-pqc-00200
   labels:
     - "konveyor.io/target=go"
-  effort: 1
+  effort: 2
   category: potential
   description: "PQC Inventory: Diffie-Hellman key exchange detected"
   when:
@@ -306,7 +306,7 @@
 - ruleID: fips-go-pqc-00300
   labels:
     - "konveyor.io/target=go"
-  effort: 1
+  effort: 2
   category: potential
   description: "PQC Inventory: DSA signature usage detected"
   when:

@@ -220,7 +220,7 @@
 - ruleID: fips-go-crypto-00500
   labels:
     - "konveyor.io/target=go"
-  effort: 4
+  effort: 3
   category: mandatory
   description: "Non-standard Curve25519 elliptic curve detected - not FIPS 140 compliant"
   when:
@@ -734,3 +734,4 @@
       url: "https://pkg.go.dev/golang.org/x/crypto/cryptobyte"
   tag:
     - "FIPS-140=Requires-Analysis"
+
